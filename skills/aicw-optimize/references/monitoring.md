@@ -29,9 +29,9 @@ For supplied exports, connected analytics, or AI mention reports, match the webs
 
 If no observations exist, produce a collection worksheet and query list. Do not invent baseline numbers. A useful worksheet contains: query, intent, engine, mode, locale, observed_at, brand_mentioned, cited_urls, evidence_path, and notes.
 
-## Collect AI answers with aicw-ai-mentions (optional)
+## Collect AI answers (optional)
 
-When no AI answer observations exist, or the user asks for new ones, offer a scan with the free aicw-ai-mentions tool. It asks several AI models the same questions through OpenRouter and records the brands and links in each answer. Scans are paid OpenRouter requests. Follow [mentions](mentions.md): ask for the user's OpenRouter API key and approval before any scan. If the user declines, continue with the manual worksheet.
+When no AI answer observations exist, or the user asks for new ones, offer to collect them. Follow [mentions](mentions.md): write 3 customer questions yourself and ask the user once. Start with a quick check through the local Claude Code and Codex CLIs when they are installed, then offer a broader aicw-ai-mentions check through OpenRouter, which needs the user's OpenRouter API key. Without either, offer the paste check. If the user declines, continue with the manual worksheet.
 
 ## Review experiments
 

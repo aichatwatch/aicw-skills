@@ -62,15 +62,14 @@ function run(command, args, { cwd, timeout }) {
   });
 }
 
-export async function askLocal({ questions, engines, brands = [], domains = [], timeout = 300_000, maxBudgetUSD = 0.5, claudeModel, codexModel, log = () => {} }) {
+export async function askLocal({ questions, engines, brands = [], domains = [], timeout = 300_000, maxBudgetUSD = 0.5, parallel = 3, claudeModel, codexModel, log = () => {} }) {
   if (process.platform === 'win32') throw new Error('ask-local supports macOS and Linux. On Windows, run it in WSL.');
   const requested = engines ?? Object.keys(ENGINES);
   for (const name of requested) if (!ENGINES[name]) throw new Error(`Unknown engine: ${name}. Use ${Object.keys(ENGINES).join(', ')}.`);
   const found = requested.map(name => ({ name, version: engineVersion(name) }));
   const usable = found.filter(e => e.version);
   if (!usable.length) throw new Error(`None of these CLIs is installed and working: ${requested.join(', ')}.`);
-  const answers = [];
-  for (const engine of usable) for (const question of questions) {
+  const ask = async (engine, question) => {
     const cwd = await mkdtemp(path.join(os.tmpdir(), 'aicw-ask-'));
     const started = Date.now();
     log(`${engine.name}: ${question}`);
@@ -80,9 +79,17 @@ export async function askLocal({ questions, engines, brands = [], domains = [], 
       const parsed = ENGINES[engine.name].parse(events);
       const error = result.timedOut ? `Timed out after ${timeout} ms.` : parsed.error ?? (result.code === 0 ? null : (result.stderr.trim().split('\n').at(-1) || `Exit code ${result.code}.`));
       const urls = citedURLs(parsed.answer);
-      answers.push({ engine: engine.name, engine_version: engine.version, model: parsed.model, question, observed_at: new Date(started).toISOString(), web_search_used: parsed.webSearch, brand_mentioned: brands.length ? mentions(parsed.answer, brands) : null, brand_cited: cites(urls, domains), cited_urls: urls, answer: parsed.answer, cost_usd: parsed.costUSD, duration_ms: Date.now() - started, error });
+      return { engine: engine.name, engine_version: engine.version, model: parsed.model, question, observed_at: new Date(started).toISOString(), web_search_used: parsed.webSearch, brand_mentioned: brands.length ? mentions(parsed.answer, brands) : null, brand_cited: cites(urls, domains), cited_urls: urls, answer: parsed.answer, cost_usd: parsed.costUSD, duration_ms: Date.now() - started, error };
     } finally { await rm(cwd, { recursive: true, force: true }); }
-  }
+  };
+  // Engines run in parallel, each with up to `parallel` questions at a time. Results keep engine, then question order.
+  const answers = (await Promise.all(usable.map(async engine => {
+    const own = new Array(questions.length); let next = 0;
+    await Promise.all(Array.from({ length: Math.min(parallel, questions.length) }, async () => {
+      while (next < questions.length) { const i = next++; own[i] = await ask(engine, questions[i]); }
+    }));
+    return own;
+  }))).flat();
   return {
     version: 1, tool: 'ask-local', book: BOOK_SOURCE, bookPages: '77-79', brands, domains,
     engines: found, answers,
