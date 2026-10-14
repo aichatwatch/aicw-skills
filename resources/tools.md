@@ -74,3 +74,11 @@ node "/absolute/path/to/installed-skill/scripts/audit.mjs" presence --origin htt
 ```
 
 This contacts Common Crawl's index service and reads a bounded sample from its most recent listed index. It does not query Google, Bing, or AI chats. A missing result describes only that observation.
+
+## Ask local AI CLIs when requested
+
+```sh
+node "/absolute/path/to/installed-skill/scripts/audit.mjs" ask-local --online --questions "/absolute/private/questions.txt" --brand "Brand Name" --domain your-real-domain.tld --output "/absolute/private/reports/answers-1"
+```
+
+This sends each question to the installed `claude` and `codex` CLIs with the user's own accounts, in an empty folder with web search only. It needs explicit `--online` and the user's approval. It never reads or edits the website. See [mentions](mentions.md#ask-local-ai-clis) for options and limits.

@@ -12,8 +12,8 @@ await mkdir(output, { recursive: true });
 const staging = await mkdtemp(path.join(output, '.prepare-'));
 const name = `aicw-skills-${pkg.version}`;
 const candidate = path.join(staging, name);
-const files = ['README.md', 'LICENSE', 'NOTICE.md', 'package.json', 'package-lock.json', '.nvmrc', '.gitignore', '.gitattributes'];
-const dirs = ['skills', 'src', 'resources', 'scripts', 'test', 'evals', 'third-party', '.github'];
+const files = ['README.md', 'LICENSE', 'NOTICE.md', 'package.json', 'package-lock.json', '.nvmrc', '.gitignore', '.gitattributes', 'plugin.json', 'mcp.json', '.mcp.json'];
+const dirs = ['skills', 'src', 'resources', 'scripts', 'test', 'evals', 'third-party', '.github', '.claude-plugin', '.agents'];
 const docs = ['book-companion.md', 'compatibility.md', 'validation.md', 'releasing.md'];
 try {
   execFileSync(process.execPath, ['scripts/check-build.mjs'], { cwd: root, stdio: 'inherit' });

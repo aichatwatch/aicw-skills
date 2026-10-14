@@ -6,7 +6,7 @@ import { BOOK_SOURCE, BOOK_CHECKLIST } from '../src/book.mjs';
 
 const dirs = (await readdir('skills')).filter(x => x.startsWith('aicw-'));
 const pkg = JSON.parse(await readFile('package.json', 'utf8'));
-assert.equal(dirs.length, 6);
+assert.equal(dirs.length, 7);
 let checked = 0;
 for (const name of dirs) {
   const root = path.resolve('skills', name);

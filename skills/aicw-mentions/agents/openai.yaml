@@ -1,0 +1,4 @@
+interface:
+  display_name: "AICW Mentions"
+  short_description: "Scan AI answers for brand mentions and cited links"
+  default_prompt: "Use $aicw-mentions for my selected website. Ask which website if it is unclear."

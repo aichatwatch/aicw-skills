@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "aicw-ai-mentions": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "aicw-ai-mentions@latest",
+        "mcp"
+      ]
+    }
+  }
+}
