@@ -40,7 +40,7 @@ var init_package = __esm({
   "package.json"() {
     package_default = {
       name: "aicw-skills",
-      version: "0.4.1",
+      version: "0.4.2",
       private: true,
       description: "Website optimization skills based on the AI Search Engine Optimization Guide by Eugene Mironichev",
       type: "module",
@@ -13765,7 +13765,7 @@ function run(command, args, { cwd, timeout }) {
     });
   });
 }
-async function askLocal({ questions, engines, brands = [], domains = [], timeout = 3e5, maxBudgetUSD = 0.5, parallel = 3, claudeModel, codexModel, log = () => {
+async function askLocal({ questions, engines, brands = [], domains = [], timeout = 3e5, maxBudgetUSD = 0.5, claudeModel, codexModel, log = () => {
 } }) {
   if (process.platform === "win32") throw new Error("ask-local supports macOS and Linux. On Windows, run it in WSL.");
   const requested = engines ?? Object.keys(ENGINES);
@@ -13773,6 +13773,8 @@ async function askLocal({ questions, engines, brands = [], domains = [], timeout
   const found = requested.map((name) => ({ name, version: engineVersion(name) }));
   const usable = found.filter((e) => e.version);
   if (!usable.length) throw new Error(`None of these CLIs is installed and working: ${requested.join(", ")}.`);
+  if (process.env.CODEX_SANDBOX_NETWORK_DISABLED === "1") throw new Error("Network access is off in this Codex sandbox. Run ask-local outside the sandbox, or with network access, after the user approves.");
+  if (process.env.CODEX_SANDBOX && usable.some((e) => e.name === "codex")) throw new Error("The codex CLI cannot start inside the Codex sandbox, which blocks writes to its ~/.codex folder. Ask to run ask-local outside the sandbox, so Codex asks the user to approve, or use --engines claude.");
   const ask = async (engine, question) => {
     const cwd = await mkdtemp(path4.join(os.tmpdir(), "aicw-ask-"));
     const started = Date.now();
@@ -13787,24 +13789,16 @@ async function askLocal({ questions, engines, brands = [], domains = [], timeout
         }
       });
       const parsed = ENGINES[engine.name].parse(events);
-      const error = result.timedOut ? `Timed out after ${timeout} ms.` : parsed.error ?? (result.code === 0 ? null : result.stderr.trim().split("\n").at(-1) || `Exit code ${result.code}.`);
+      const failure = result.code === 0 ? null : result.stderr.trim().split("\n").at(-1) || `Exit code ${result.code}.`;
+      const error = result.timedOut ? `Timed out after ${timeout} ms.` : [parsed.error, failure].filter(Boolean).join(" ") || null;
       const urls = citedURLs(parsed.answer);
       return { engine: engine.name, engine_version: engine.version, model: parsed.model, question, observed_at: new Date(started).toISOString(), web_search_used: parsed.webSearch, brand_mentioned: brands.length ? mentions(parsed.answer, brands) : null, brand_cited: cites(urls, domains), cited_urls: urls, answer: parsed.answer, cost_usd: parsed.costUSD, duration_ms: Date.now() - started, error };
     } finally {
       await rm(cwd, { recursive: true, force: true });
     }
   };
-  const answers = (await Promise.all(usable.map(async (engine) => {
-    const own = new Array(questions.length);
-    let next = 0;
-    await Promise.all(Array.from({ length: Math.min(parallel, questions.length) }, async () => {
-      while (next < questions.length) {
-        const i = next++;
-        own[i] = await ask(engine, questions[i]);
-      }
-    }));
-    return own;
-  }))).flat();
+  const answers = [];
+  for (const engine of usable) for (const question of questions) answers.push(await ask(engine, question));
   return {
     version: 1,
     tool: "ask-local",
@@ -13864,8 +13858,8 @@ Use --root for files or --url for HTTP. A URL-only audit needs no local project.
 prepare-submission creates files only. There is no submit command.
 presence checks one recent Common Crawl index; it is not proof of AI training.
 ask-local sends each question to the installed claude and codex CLIs, using the
-user's own accounts, in an empty folder with web search only. Up to three
-questions per CLI run at the same time. It prints the
+user's own accounts, in an empty folder with web search only, one answer at
+a time. It prints the
 answers, cited links, and brand mentions. It never writes to the website.
 `;
 async function main(argv = process.argv.slice(2)) {

@@ -35,7 +35,7 @@ Open a new agent session and ask:
 
 > Use aicw-mentions to check how AI assistants mention my brand.
 
-Give the agent your website URL, project folder, or connected site. It asks when the target is unclear. For a mention scan, the agent writes 3 questions your customers might ask and checks with you once before it runs them. The quick check uses your local Claude Code and Codex and takes about a minute. The broader check covers ChatGPT, Claude, Gemini, Grok, and Perplexity models and needs your OpenRouter API key. Without either, the agent gives you the questions to paste into any AI app.
+Give the agent your website URL, project folder, or connected site. It asks when the target is unclear. For a mention scan, the agent writes 3 questions your customers might ask and checks with you once before it runs them. The quick check uses your local Claude Code and Codex and takes a few minutes. The broader check covers ChatGPT, Claude, Gemini, Grok, and Perplexity models and needs your OpenRouter API key. Without either, the agent gives you the questions to paste into any AI app.
 
 ## Included skills
 

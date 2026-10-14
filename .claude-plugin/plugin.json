@@ -1,7 +1,7 @@
 {
   "name": "aicw-skills",
   "displayName": "AICW Skills",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Audit and improve a website for AI search, and scan how AI assistants mention and cite it. Based on the AI Search Engine Optimization Guide by Eugene Mironichev.",
   "author": {
     "name": "aicw-io",

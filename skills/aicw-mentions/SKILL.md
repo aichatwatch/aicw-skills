@@ -5,7 +5,7 @@ license: MIT
 compatibility: The quick check needs the local Claude Code or Codex CLI and Node.js 22+. The broad check needs the aicw-ai-mentions MCP server, or command access with Node.js 18+, and the user's OpenRouter API key; OpenRouter bills it. The paste check needs no setup.
 metadata:
   author: aicw-io
-  version: 0.4.1
+  version: 0.4.2
 ---
 
 # Scan AI mentions and citations
@@ -18,9 +18,9 @@ Resolve `references/` and `scripts/` from this installed skill folder, not from 
 
 Keep it simple, because many users are not technical. Plan the scan yourself as in [mentions](references/mentions.md#keep-it-simple-for-the-user): write 3 questions a potential customer would ask, without the brand name, and ask the user once whether to run them. Avoid technical words in messages to the user.
 
-Start with the quick check: if `claude` or `codex` is installed, the bundled `ask-local` command asks them the questions with the user's own account. It needs no key or setup and takes about a minute. After those results, offer the broad check with more AI models: aicw-ai-mentions through its MCP tools, or through `npx -y aicw-ai-mentions@latest` with command access. Without local CLIs, as in web clients, offer the broad check if its tools are connected; otherwise offer the [paste check](references/mentions.md#paste-check-no-setup), where the user asks an AI app and pastes the answers back.
+Start with the quick check: if `claude` or `codex` is installed, the bundled `ask-local` command asks them the questions with the user's own account. It needs no key or setup and takes a few minutes. After those results, offer the broad check with more AI models: aicw-ai-mentions through its MCP tools, or through `npx -y aicw-ai-mentions@latest` with command access. Without local CLIs, as in web clients, offer the broad check if its tools are connected; otherwise offer the [paste check](references/mentions.md#paste-check-no-setup), where the user asks an AI app and pastes the answers back.
 
-Never start a scan on your own. Before any scan, get one yes to the questions and answer sources you propose. Before a broad check, ask the user for their OpenRouter API key, or confirm a key they already configured. Do not look for keys in environment files, shell profiles, or other projects, and never invent one. Do not print, repeat, or write the key to project files.
+Never start a scan on your own. Before any scan, get one yes to the questions and answer sources you propose. Before a broad check, ask the user for their OpenRouter API key, or confirm a key they already configured. Save each quick check in `~/aicw-reports/<domain>/<YYYY-MM-DD>/`, not a temporary folder, and tell the user where it is. Do not look for keys in environment files, shell profiles, or other projects, and never invent one. Do not print, repeat, or write the key to project files.
 
 Build questions from real audience tasks, including unbranded questions where the brand should appear. Keep the exact questions and models stable so later scans are comparable.
 

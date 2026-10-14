@@ -62,13 +62,16 @@ function run(command, args, { cwd, timeout }) {
   });
 }
 
-export async function askLocal({ questions, engines, brands = [], domains = [], timeout = 300_000, maxBudgetUSD = 0.5, parallel = 3, claudeModel, codexModel, log = () => {} }) {
+export async function askLocal({ questions, engines, brands = [], domains = [], timeout = 300_000, maxBudgetUSD = 0.5, claudeModel, codexModel, log = () => {} }) {
   if (process.platform === 'win32') throw new Error('ask-local supports macOS and Linux. On Windows, run it in WSL.');
   const requested = engines ?? Object.keys(ENGINES);
   for (const name of requested) if (!ENGINES[name]) throw new Error(`Unknown engine: ${name}. Use ${Object.keys(ENGINES).join(', ')}.`);
   const found = requested.map(name => ({ name, version: engineVersion(name) }));
   const usable = found.filter(e => e.version);
   if (!usable.length) throw new Error(`None of these CLIs is installed and working: ${requested.join(', ')}.`);
+  // Codex marks commands it runs in its sandbox. A nested codex cannot start there, and every engine needs the network.
+  if (process.env.CODEX_SANDBOX_NETWORK_DISABLED === '1') throw new Error('Network access is off in this Codex sandbox. Run ask-local outside the sandbox, or with network access, after the user approves.');
+  if (process.env.CODEX_SANDBOX && usable.some(e => e.name === 'codex')) throw new Error('The codex CLI cannot start inside the Codex sandbox, which blocks writes to its ~/.codex folder. Ask to run ask-local outside the sandbox, so Codex asks the user to approve, or use --engines claude.');
   const ask = async (engine, question) => {
     const cwd = await mkdtemp(path.join(os.tmpdir(), 'aicw-ask-'));
     const started = Date.now();
@@ -77,19 +80,15 @@ export async function askLocal({ questions, engines, brands = [], domains = [], 
       const result = await run(engine.name, ENGINES[engine.name].args(question, { maxBudgetUSD, claudeModel, codexModel }), { cwd, timeout });
       const events = result.stdout.split('\n').flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
       const parsed = ENGINES[engine.name].parse(events);
-      const error = result.timedOut ? `Timed out after ${timeout} ms.` : parsed.error ?? (result.code === 0 ? null : (result.stderr.trim().split('\n').at(-1) || `Exit code ${result.code}.`));
+      const failure = result.code === 0 ? null : result.stderr.trim().split('\n').at(-1) || `Exit code ${result.code}.`;
+      const error = result.timedOut ? `Timed out after ${timeout} ms.` : [parsed.error, failure].filter(Boolean).join(' ') || null;
       const urls = citedURLs(parsed.answer);
       return { engine: engine.name, engine_version: engine.version, model: parsed.model, question, observed_at: new Date(started).toISOString(), web_search_used: parsed.webSearch, brand_mentioned: brands.length ? mentions(parsed.answer, brands) : null, brand_cited: cites(urls, domains), cited_urls: urls, answer: parsed.answer, cost_usd: parsed.costUSD, duration_ms: Date.now() - started, error };
     } finally { await rm(cwd, { recursive: true, force: true }); }
   };
-  // Engines run in parallel, each with up to `parallel` questions at a time. Results keep engine, then question order.
-  const answers = (await Promise.all(usable.map(async engine => {
-    const own = new Array(questions.length); let next = 0;
-    await Promise.all(Array.from({ length: Math.min(parallel, questions.length) }, async () => {
-      while (next < questions.length) { const i = next++; own[i] = await ask(engine, questions[i]); }
-    }));
-    return own;
-  }))).flat();
+  // One answer at a time: slower, but no CLI ever runs beside another copy of itself or the other engine.
+  const answers = [];
+  for (const engine of usable) for (const question of questions) answers.push(await ask(engine, question));
   return {
     version: 1, tool: 'ask-local', book: BOOK_SOURCE, bookPages: '77-79', brands, domains,
     engines: found, answers,
