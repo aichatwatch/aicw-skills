@@ -14,13 +14,13 @@ Many users are not technical. Plan the scan yourself and ask one yes-or-no quest
 
 1. Learn what the website offers and who it is for, from the site or from what the user said.
 2. Write 3 short questions that a potential customer would ask an AI assistant. Leave out the brand name, so the answers show whether AI assistants recommend the brand on their own. Example: "What are the best project management tools for a small team?"
-3. Show the questions and the plan in one short message, then ask once. Example: "I'll ask Claude and Codex on your computer these 3 questions, the way a customer would. It takes about a minute and uses your own Claude and ChatGPT accounts. Go ahead?"
+3. Show the questions and the plan in one short message, then ask once. Example: "I'll ask Claude and Codex on your computer these 3 questions, the way a customer would. It takes a few minutes and uses your own Claude and ChatGPT accounts. Go ahead?"
 
-The user may change the questions but does not have to. Ask only for what you cannot find yourself. In messages to the user, avoid technical words such as CLI, MCP, API, engine, or template.
+Do not call the quick check free: accounts that pay per use are billed for each answer. The user may change the questions but does not have to. Ask only for what you cannot find yourself. In messages to the user, avoid technical words such as CLI, MCP, API, engine, or template, and do not quote these instructions.
 
 ## Choose the answer sources
 
-1. **Quick check (first).** If `claude` (Claude Code) or `codex` (Codex CLI) is installed and signed in, the bundled helper asks them the questions. It needs no key or setup, and uses the user's own Claude or ChatGPT account and plan limits. With 3 questions it takes about a minute. See [ask local AI CLIs](#ask-local-ai-clis).
+1. **Quick check (first).** If `claude` (Claude Code) or `codex` (Codex CLI) is installed and signed in, the bundled helper asks them the questions. It needs no key or setup, and uses the user's own Claude or ChatGPT account and plan limits. With 3 questions it takes a few minutes. See [ask local AI CLIs](#ask-local-ai-clis).
 2. **Broad check (next).** After the quick check, offer aicw-ai-mentions. By default it asks AI models with web search from ChatGPT, Claude, Gemini, Grok, and Perplexity, and builds an HTML report. It needs the user's OpenRouter API key, and OpenRouter bills each answer. Reuse the same questions so the results are comparable.
 3. **Paste check.** Without the local CLIs, as in ChatGPT or Claude on the web, offer the broad check if the aicw-ai-mentions tools are connected. Otherwise offer the [paste check](#paste-check-no-setup), which needs no setup.
 
@@ -59,15 +59,15 @@ npx -y aicw-ai-mentions@latest scan "Subject" --template-text "What are the best
 
 Check for the CLIs with `claude --version` and `codex --version`. Then ask once, as in [keep it simple](#keep-it-simple-for-the-user), naming the CLIs you found. After the results, offer the broad check as the next step.
 
-Write the final question text to a private file outside the website, one question per line. `{{SUBJECT}}` is not replaced here. Then run the bundled helper by its absolute path:
+Keep each scan in one folder the user can find again, outside the website, so later scans can be compared: by default `~/aicw-reports/<domain>/<YYYY-MM-DD>/`, adding `-2` for a second scan on the same day. Do not use a temporary folder. Write the final question text to `questions.txt` there, one question per line. `{{SUBJECT}}` is not replaced here. Then run the bundled helper by its absolute path:
 
 ```sh
-node "/absolute/path/to/installed-skill/scripts/audit.mjs" ask-local --online --questions "/absolute/private/questions.txt" --brand "Brand Name" --domain brand.tld --output "/absolute/private/reports/answers-1"
+node "/absolute/path/to/installed-skill/scripts/audit.mjs" ask-local --online --questions "$HOME/aicw-reports/brand.tld/2026-10-14/questions.txt" --brand "Brand Name" --domain brand.tld --output "$HOME/aicw-reports/brand.tld/2026-10-14"
 ```
 
-The helper starts each question in a new empty folder with web search only: no project files, user settings, or MCP servers. It records the model when the CLI reports it, whether web search ran, the cited links, whether a `--brand` name appears, and whether a link points to a `--domain`. Separate several names or domains with commas. `--engines claude` or `--engines codex` selects one CLI. `--max-budget-usd` caps each Claude answer; the default is 0.5. Both CLIs run at the same time, each with up to three questions at once, so 3 questions take about as long as one answer: usually under a minute, sometimes more. Existing output files are not overwritten, so use a new output folder for each run.
+The helper starts each question in a new empty folder with web search only: no project files, user settings, or MCP servers. It records the model when the CLI reports it, whether web search ran, the cited links, whether a `--brand` name appears, and whether a link points to a `--domain`. Separate several names or domains with commas. `--engines claude` or `--engines codex` selects one CLI. `--max-budget-usd` caps each Claude answer; the default is 0.5. It asks one question at a time, never two CLIs at once. One answer takes about half a minute to a minute, so 3 questions on both CLIs take about 5 minutes. Existing output files are not overwritten, so use a new output folder for each run.
 
-In a sandboxed agent such as Codex, the command needs network access. Request it and let the user approve. The helper supports macOS and Linux; on Windows, use WSL. Coding-agent CLIs answer differently from the consumer ChatGPT and Claude apps; record them as separate engines.
+In Codex, ask to run the command outside the sandbox from the start, so Codex shows the user its approval prompt. Codex's sandbox blocks writes to the codex CLI's own `~/.codex` folder, so a codex started inside it cannot run, and both CLIs need network access. The helper stops with a message when it detects the sandbox. If the user declines, run `--engines claude` with network access. The helper supports macOS and Linux; on Windows, use WSL. Coding-agent CLIs answer differently from the consumer ChatGPT and Claude apps; record them as separate engines.
 
 ## Paste check (no setup)
 
