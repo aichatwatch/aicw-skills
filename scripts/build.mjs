@@ -73,6 +73,7 @@ for (const name of skills) {
     'aicw-jsonld': 'Inspect and repair page JSON-LD markup',
     'aicw-audit': 'Audit crawl access, sitemaps, rendering, and speed',
     'aicw-monitor': 'Track AI search observations and compare reports',
+    'aicw-mentions': 'Scan AI answers for brand mentions and cited links',
     'aicw-submit': 'Guide Google, Bing, and Brave search submissions',
   }[name];
   await writeFile(path.join(skill, 'agents/openai.yaml'), `interface:\n  display_name: ${JSON.stringify(title)}\n  short_description: ${JSON.stringify(short)}\n  default_prompt: ${JSON.stringify(`Use $${name} for my selected website. Ask which website if it is unclear.`)}\n`);

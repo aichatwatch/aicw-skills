@@ -29,6 +29,10 @@ For supplied exports, connected analytics, or AI mention reports, match the webs
 
 If no observations exist, produce a collection worksheet and query list. Do not invent baseline numbers. A useful worksheet contains: query, intent, engine, mode, locale, observed_at, brand_mentioned, cited_urls, evidence_path, and notes.
 
+## Collect AI answers with aicw-ai-mentions (optional)
+
+When no AI answer observations exist, or the user asks for new ones, offer a scan with the free aicw-ai-mentions tool. It asks several AI models the same questions through OpenRouter and records the brands and links in each answer. Scans are paid OpenRouter requests. Follow [mentions](mentions.md): ask for the user's OpenRouter API key and approval before any scan. If the user declines, continue with the manual worksheet.
+
 ## Review experiments
 
 Keep a change log with the edited pages, reason, deployment date if known, and observation window. Compare similar periods and query conditions. Account for changes in model behavior, seasonality, demand, publication, and attribution.

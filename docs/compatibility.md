@@ -1,12 +1,12 @@
 # Agent compatibility
 
-The six skills use the [Agent Skills format](https://agentskills.io/specification). Use the agent’s available file, web, or CMS connector access for the selected website. Bundled scripts require command execution and Node.js 22+. Browser comparisons need a browser runtime. No particular framework or connector is required for content review. State which checks the available access cannot support.
+The seven skills use the [Agent Skills format](https://agentskills.io/specification). Use the agent’s available file, web, or CMS connector access for the selected website. Bundled scripts require command execution and Node.js 22+. Browser comparisons need a browser runtime. No particular framework or connector is required for content review. State which checks the available access cannot support.
 
 ## Install for your agent
 
 Use the README’s installer and choose project or personal installation. Project installation works in a local workspace even when the website itself is remote.
 
-Copy any complete `skills/aicw-*` folder into your client's skill directory, or use the installer from the README. Keep the scripts, references, and license files together. Install one skill or all six; each works independently.
+Copy any complete `skills/aicw-*` folder into your client's skill directory, or use the installer from the README. Keep the scripts, references, and license files together. Install one skill or all seven; each works independently.
 
 | Client | Project skill directory | How to start |
 | --- | --- | --- |
@@ -16,9 +16,33 @@ Copy any complete `skills/aicw-*` folder into your client's skill directory, or 
 | GitHub Copilot | `.github/skills/` or `.agents/skills/` | Ask to use `aicw-jsonld` in an agent client |
 | Gemini CLI | `.gemini/skills/` or `.agents/skills/` | Ask to use `aicw-jsonld` |
 
-These locations come from the official documentation for [Claude Code](https://code.claude.com/docs/en/skills), [Codex](https://learn.chatgpt.com/docs/build-skills), [Cursor](https://cursor.com/docs/skills), [Copilot](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills), and [Gemini CLI](https://geminicli.com/docs/cli/skills/), checked on 2026-10-09. Local skill installation is distinct from cloud synchronization or marketplace installation. This repository does not require a plugin, MCP server, API key, or a specific agent vendor for its audit scripts.
+These locations come from the official documentation for [Claude Code](https://code.claude.com/docs/en/skills), [Codex](https://learn.chatgpt.com/docs/build-skills), [Cursor](https://cursor.com/docs/skills), [Copilot](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills), and [Gemini CLI](https://geminicli.com/docs/cli/skills/), checked on 2026-10-09. Local skill installation is distinct from cloud synchronization or marketplace installation. The audit scripts do not require a plugin, MCP server, API key, or a specific agent vendor. Only `aicw-mentions` scans need the aicw-ai-mentions tool and the user's OpenRouter API key.
 
 For Claude Code, copying `skills/aicw-jsonld` produces `.claude/skills/aicw-jsonld/SKILL.md` in the website project. Start a fresh session and invoke `/aicw-jsonld`. For Codex the corresponding file is `.agents/skills/aicw-jsonld/SKILL.md`. The optional `agents/openai.yaml` supplies OpenAI UI metadata; all working instructions remain in the portable files.
+
+## Plugins and mention scans
+
+The repository is also a plugin for Claude Code, Codex, and the ChatGPT desktop app. The plugin installs all seven skills and the [aicw-ai-mentions](https://github.com/aicw-io/aicw-ai-mentions) MCP server, which `aicw-mentions` uses to scan AI answers. The server starts with `npx -y aicw-ai-mentions@latest mcp` and needs Node.js 18+. It asks for no key at startup; the skill asks for the user's OpenRouter API key before the first scan and stores it with the server's encrypted key tool.
+
+| Client | Install | Mention scans |
+| --- | --- | --- |
+| Claude Code | `/plugin install aicw-skills --marketplace aicw-io/aicw-skills` | Included MCP server |
+| Codex CLI and ChatGPT desktop app | `codex plugin marketplace add aicw-io/aicw-skills`, then install `aicw-skills` from the Plugins Directory or with `codex plugin add aicw-skills@aicw-io` | Included MCP server |
+| Claude Desktop | Upload skill folders as ZIP files where your plan supports skills | Add a local MCP server: command `npx`, arguments `-y`, `aicw-ai-mentions@latest`, `mcp` |
+| Claude and ChatGPT on the web | Upload skill folders as ZIP files where your plan supports skills | Remote connector over HTTPS (see below) |
+| Other skill clients | `npx skills add aicw-io/aicw-skills` | Command line: `npx -y aicw-ai-mentions@latest` |
+
+To make a ZIP file for upload, compress one complete skill folder, for example `skills/aicw-mentions`, with its `references`, `scripts`, and license files.
+
+Web clients cannot start a local server. Run the server in HTTP mode with a long random path, expose it through a tunnel you trust, and add the full `https://` address as a custom connector:
+
+```sh
+npx -y aicw-ai-mentions@latest mcp --http --port 8787 --path /mcp-<long-random-text>
+```
+
+The HTTP server has no login. Anyone with the address can run paid scans with the stored key. Keep the address private and stop the server after use. Web skill sandboxes may block network access, so mention scans there depend on the connector.
+
+Plugin manifests: `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and `.mcp.json` for Claude Code; `plugin.json`, `mcp.json`, and `.agents/plugins/marketplace.json` in the [Agent Plugins format](https://agent-plugins.org/) for Codex and ChatGPT. Their versions match `package.json`.
 
 ## Updating from version 0.1
 

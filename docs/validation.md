@@ -2,6 +2,20 @@
 
 Validated on 2026-10-09 with Node.js 22.22.3. Bundled scripts need Node.js 22 or newer. The development suite uses the exact dependencies in `package-lock.json`.
 
+## Version 0.4 mention scans and plugins
+
+Checked on 2026-10-14 with Node.js 22.22.3 on macOS, Claude Code 2.1.299, and Codex CLI 0.162.0.
+
+| Check | Result |
+| --- | --- |
+| Core suite, skill validation, build consistency | All 40 core tests passed; seven skills and their references validated; repeated builds were identical. |
+| Claude Code plugin | `claude plugin validate --strict` passed. In an isolated configuration folder, the marketplace was added, the plugin installed and enabled, and its MCP server was listed. |
+| Codex plugin | In an isolated Codex home, the marketplace was added from `.agents/plugins/marketplace.json`, the plugin installed, and `codex mcp list` showed the aicw-ai-mentions server. |
+| aicw-ai-mentions MCP | The 1.2.3 package tarball started over stdio and answered all seven tools. HTTP mode answered on a custom path and returned 404 elsewhere. npm version 1.2.1 has no `mcp` command, so the plugin server needs version 1.2.3 or later on npm. |
+| `ask-local` | A fake-CLI test checks empty working folders, removal of parent session variables, web-search-only flags, brand and domain matching, and no overwrites. One live question each through local Claude Code and Codex returned answers that used web search, with cited links. |
+
+Mention scans through OpenRouter were not run for this record. Live agent evaluations for the new cases were reviewed as dry runs only.
+
 ## Version 0.3 website access and book review
 
 Re-read the full 84-page source PDF and visually checked its cover and all four checklist pages. Its SHA-256 still matches [the recorded edition](../resources/book.md). Reviewed all six skill entrypoints, the shared references, and the audit rule mapping against those pages.

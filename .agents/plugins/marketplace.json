@@ -1,0 +1,20 @@
+{
+  "name": "aicw-io",
+  "interface": {
+    "displayName": "AICW"
+  },
+  "plugins": [
+    {
+      "name": "aicw-skills",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

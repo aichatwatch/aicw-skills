@@ -13,7 +13,7 @@ npm run test:agents -- --agent codex
 npm run test:agents -- --agent claude
 ```
 
-The runner copies the six skills into a temporary synthetic project, creates a deliberately weak page and broken JSON-LD reference, and asks the client to perform a task. It writes `CLAUDE.md` for Claude and `AGENTS.md` for Codex. It leaves existing agent installations and website projects alone. Sessions are bounded to three minutes; Claude sessions request a $0.75 estimated API budget cap, which is not a billing guarantee. Model overrides are not selected by the runner.
+The runner copies the seven skills into a temporary synthetic project, creates a deliberately weak page and broken JSON-LD reference, and asks the client to perform a task. It writes `CLAUDE.md` for Claude and `AGENTS.md` for Codex. It leaves existing agent installations and website projects alone. Sessions are bounded to three minutes; Claude sessions request a $0.75 estimated API budget cap, which is not a billing guarantee. Model overrides are not selected by the runner.
 
 The live Claude runner currently uses Bash on macOS, Linux, or WSL. It keeps skill discovery enabled, selects project settings, and requests an empty strict MCP configuration. Its command permissions are not an operating-system sandbox; Node can execute arbitrary JavaScript. Native Windows live evaluation is not implemented, but static review works there. See [compatibility](../docs/compatibility.md) for the parameter review and the separate portability status of the installed skills.
 

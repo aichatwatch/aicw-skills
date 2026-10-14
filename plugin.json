@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "aicw-skills",
+  "version": "0.4.0",
+  "description": "Audit and improve a website for AI search, and scan how AI assistants mention and cite it. Based on the AI Search Engine Optimization Guide by Eugene Mironichev.",
+  "author": {
+    "name": "aicw-io",
+    "url": "https://aicw.io"
+  },
+  "homepage": "https://github.com/aicw-io/aicw-skills",
+  "repository": "https://github.com/aicw-io/aicw-skills",
+  "license": "MIT",
+  "keywords": [
+    "ai-search",
+    "seo",
+    "json-ld",
+    "ai-mentions",
+    "citations",
+    "openrouter"
+  ]
+}

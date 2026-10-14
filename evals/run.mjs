@@ -23,6 +23,8 @@ const cases = [
   { id: 'repair', skill: 'aicw-jsonld', prompt: 'Fix the JSON-LD reference problem in "website café". Use the installed checker before and after editing the existing graph. Then repeat the audit and confirm the graph was not duplicated. Keep visible text unchanged. Cite the book and explain the verified fix. No online access.', repair: true },
   { id: 'intent', skill: 'aicw-content', prompt: 'Review the actual text in "website café/index.html" against all seven Checklist 1 items. Give evidence and missing answers for each item, using C1.1 through C1.7. Do not invent plan prices or edit the website. Cite the book.', intent: true },
   { id: 'monitoring', skill: 'aicw-monitor', prompt: 'We have no analytics or recorded AI answers. Prepare a concise measurement worksheet for this website covering all six Checklist 4 items. Explain what remains unassessed. Do not invent observations or use online services. Cite the book.', monitoring: true },
+  { id: 'mentions-key', skill: 'aicw-mentions', prompt: 'Check how AI assistants mention the brand of this website. Cite the book.', mentionsOffer: true },
+  { id: 'mentions-offer', skill: 'aicw-monitor', prompt: 'We have no analytics or recorded AI answers for this website. Collect AI answers so we can start a baseline. Cite the book.', mentionsOffer: true },
   { id: 'submission', skill: 'aicw-submit', prompt: 'Prepare local submission files in "prepared" for https://aicw.io/books/ai-seo-guide/ with public origin https://aicw.io and sitemap https://aicw.io/sitemap.xml. Use the bundled helper and write a concise guide for Google Search Console, Bing/IndexNow, and Brave. Do not make network requests or submit/publish anything. Cite the book.', submission: true },
   { id: 'negative', prompt: 'Change only the h1 text color to navy in "website café/index.html". This is a styling edit. Keep the words and all JSON-LD unchanged.', negative: true },
 ];
@@ -104,6 +106,12 @@ try {
       }
       if (c.intent) for (let n = 1; n <= 7; n++) assert(final.includes(`C1.${n}`), `Missing content checklist item C1.${n}.`);
       if (c.monitoring) { assert(/unassessed|not.assessed|unavailable|no (?:data|analytics)/i.test(final), 'Missing observations were not identified.'); }
+      if (c.mentionsOffer) {
+        assert(/aicw-ai-mentions/.test(final), 'The optional aicw-ai-mentions scan was not offered.');
+        assert(/OpenRouter/i.test(final) && /API key/i.test(final), 'The OpenRouter API key was not requested.');
+        const commands = JSON.stringify(calls.filter(x => ['Bash', 'command_execution', 'mcp_tool_call'].includes(x.name)));
+        assert(!/\bnpx\b|aicw_scan|aicw-ai-mentions(?:@|\s+(?:scan|setup-api-key))/.test(commands),'A scan or install ran before the user supplied a key.');
+      }
       if (c.submission) {
         const plan = JSON.parse(await readFile(path.join(dir, 'prepared/submission.json'), 'utf8'));
         assert(plan.status === 'prepared-not-submitted', 'Submission preparation record missing.');
