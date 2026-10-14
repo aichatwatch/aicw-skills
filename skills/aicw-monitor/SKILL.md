@@ -1,11 +1,11 @@
 ---
 name: aicw-monitor
-description: Build and compare an AI search measurement baseline using audit reports, available analytics, and recorded search observations. Use to distinguish brand mentions, citations, indexing, referral traffic, conversions, and content-refresh experiments. Can offer an optional aicw-ai-mentions scan to collect AI answers after the user provides an OpenRouter API key.
+description: Build and compare an AI search measurement baseline using audit reports, available analytics, and recorded search observations. Use to distinguish brand mentions, citations, indexing, referral traffic, conversions, and content-refresh experiments. Can offer to collect AI answers with local Claude Code and Codex, or with aicw-ai-mentions and the user’s OpenRouter API key.
 license: MIT
 compatibility: Use available file, web, or CMS connector access for the selected website. Bundled scripts require command access and Node.js 22+. Browser checks need a browser runtime. Connectors are not included.
 metadata:
   author: aicw-io
-  version: 0.4.0
+  version: 0.4.1
 ---
 
 # Measure outcomes and choose the next change
@@ -24,7 +24,7 @@ Build a query set from real audience tasks. Record the engine, exact query, date
 
 Read supplied exports or the selected site’s analytics, search console, server-log, or AI mention data through available authorized tools. Match the account property and date range to the selected website. Inspect their actual fields first. Keep observed facts separate from attribution assumptions. Do not require a paid service, an account, or an API key for the local workflow.
 
-If no AI answer observations exist, you may offer an optional aicw-ai-mentions scan. Follow [mentions](references/mentions.md), or the `aicw-mentions` skill when it is installed. A scan makes paid OpenRouter requests. Ask the user for their OpenRouter API key and their approval first. Without both, use the manual worksheet.
+If no AI answer observations exist, you may offer to collect them. Follow [mentions](references/mentions.md), or the `aicw-mentions` skill when it is installed: write 3 customer questions yourself and ask the user once. A quick check through the local Claude Code and Codex CLIs comes first, then an optional aicw-ai-mentions check through OpenRouter, which needs the user's OpenRouter API key. Without either, offer the paste check. If the user declines, use the manual worksheet.
 
 Compare like-for-like observations before and after a change. Use a change log and a defined observation window. State sample size, coverage, and confounders. A citation change is not proof that a particular edit caused it.
 

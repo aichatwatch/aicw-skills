@@ -35,7 +35,7 @@ Open a new agent session and ask:
 
 > Use aicw-mentions to check how AI assistants mention my brand.
 
-Give the agent your website URL, project folder, or connected site. It asks when the target is unclear. Before any mention scan, it confirms the questions and answer sources. An OpenRouter scan also needs your OpenRouter API key.
+Give the agent your website URL, project folder, or connected site. It asks when the target is unclear. For a mention scan, the agent writes 3 questions your customers might ask and checks with you once before it runs them. The quick check uses your local Claude Code and Codex and takes about a minute. The broader check covers ChatGPT, Claude, Gemini, Grok, and Perplexity models and needs your OpenRouter API key. Without either, the agent gives you the questions to paste into any AI app.
 
 ## Included skills
 
@@ -43,7 +43,7 @@ Give the agent your website URL, project folder, or connected site. It asks when
 - `aicw-content`: Match content to reader intent, fill missing answers, and improve headings, factual support, FAQs, and next steps.
 - `aicw-jsonld`: Check JSON-LD syntax, entity links, and consistency with visible content, then validate repairs.
 - `aicw-audit`: Inspect robots.txt, sitemaps, indexing directives, server responses, rendering, and load speed for crawler access problems.
-- `aicw-mentions`: Ask AI models your audience's questions, and report which brands they mention and which links they cite. Uses the free aicw-ai-mentions tool with your OpenRouter API key, and your local Claude Code and Codex CLIs when they are installed.
+- `aicw-mentions`: Ask AI models your audience's questions, and report which brands they mention and which links they cite. Writes the questions for you and asks once. Starts with a quick check through your local Claude Code and Codex, with no key needed. Then it offers a broader check with the free aicw-ai-mentions tool and your OpenRouter API key.
 - `aicw-monitor`: Track brand mentions, citations, indexing, referral traffic, and conversions. Compare available reports and search observations before and after changes.
 - `aicw-submit`: Guide manual Google, Bing/IndexNow, and Brave submissions, including sitemap URLs, ownership verification, and submission records.
 

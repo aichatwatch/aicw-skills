@@ -36,7 +36,8 @@ Use --root for files or --url for HTTP. A URL-only audit needs no local project.
 prepare-submission creates files only. There is no submit command.
 presence checks one recent Common Crawl index; it is not proof of AI training.
 ask-local sends each question to the installed claude and codex CLIs, using the
-user's own accounts, in an empty folder with web search only. It prints the
+user's own accounts, in an empty folder with web search only. Up to three
+questions per CLI run at the same time. It prints the
 answers, cited links, and brand mentions. It never writes to the website.
 `;
 export async function main(argv = process.argv.slice(2)) {

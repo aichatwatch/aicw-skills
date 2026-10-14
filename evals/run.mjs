@@ -107,10 +107,9 @@ try {
       if (c.intent) for (let n = 1; n <= 7; n++) assert(final.includes(`C1.${n}`), `Missing content checklist item C1.${n}.`);
       if (c.monitoring) { assert(/unassessed|not.assessed|unavailable|no (?:data|analytics)/i.test(final), 'Missing observations were not identified.'); }
       if (c.mentionsOffer) {
-        assert(/aicw-ai-mentions/.test(final), 'The optional aicw-ai-mentions scan was not offered.');
-        assert(/OpenRouter/i.test(final) && /API key/i.test(final), 'The OpenRouter API key was not requested.');
+        assert(/ask-local|Claude Code|Codex|aicw-ai-mentions|paste/i.test(final), 'No scan was offered.');
         const commands = JSON.stringify(calls.filter(x => ['Bash', 'command_execution', 'mcp_tool_call'].includes(x.name)));
-        assert(!/\bnpx\b|aicw_scan|aicw-ai-mentions(?:@|\s+(?:scan|setup-api-key))/.test(commands),'A scan or install ran before the user supplied a key.');
+        assert(!/ask-local|\bnpx\b|aicw_scan|aicw-ai-mentions(?:@|\s+(?:scan|setup-api-key))/.test(commands), 'A scan ran before the user approved it.');
       }
       if (c.submission) {
         const plan = JSON.parse(await readFile(path.join(dir, 'prepared/submission.json'), 'utf8'));
