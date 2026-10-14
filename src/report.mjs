@@ -7,6 +7,7 @@ export function markdownReport(report) {
   const lines = ['# AICW website audit', '',
     `Based on ${BOOK_SOURCE.author}’s [${BOOK_SOURCE.title}](${BOOK_SOURCE.url}), full 84-page edition.`, '',
     `Inspected ${report.coverage.inspected} pages. Mode: ${report.mode}. Coverage truncated: ${report.coverage.truncated ? 'yes' : 'no'}.`, '',
+    ...(Object.keys(report.coverage.sitemapSections ?? {}).length ? [`Sitemap URLs by section: ${Object.entries(report.coverage.sitemapSections).map(([s, n]) => `${md(s)} ${n}`).join(', ')}.`, ''] : []),
     'A pass applies only to its stated check. Review items need judgment. Unknown and skipped checks are not passes.', '',
     'Book-application findings apply a checklist principle. Implementation-check findings are engineering checks used to inspect that principle; their exact algorithms are not in the book. Current-correction findings update a printed example using the linked technical definition.', '',
     '| Status | Rule | Basis | Location | Evidence | Next action |', '| --- | --- | --- | --- | --- | --- |'];

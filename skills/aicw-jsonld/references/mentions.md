@@ -13,7 +13,7 @@ Each scan sends paid requests that OpenRouter bills to the user's account. A ful
 Many users are not technical. Plan the scan yourself and ask one yes-or-no question:
 
 1. Learn what the website offers and who it is for, from the site or from what the user said.
-2. Write 3 short questions that a potential customer would ask an AI assistant. Leave out the brand name, so the answers show whether AI assistants recommend the brand on their own. Example: "What are the best project management tools for a small team?"
+2. If `~/aicw-reports/<domain>/questions.txt` exists, propose exactly those questions, so the new scan can be compared with earlier ones. Do not offer other question sets unless the user asks to change them. Otherwise write 3 short questions that a potential customer would ask an AI assistant. Leave out the brand name, so the answers show whether AI assistants recommend the brand on their own. Example: "What are the best project management tools for a small team?"
 3. Show the questions and the plan in one short message, then ask once. Example: "I'll ask Claude and Codex on your computer these 3 questions, the way a customer would. It takes a few minutes and uses your own Claude and ChatGPT accounts. Go ahead?"
 
 Do not call the quick check free: accounts that pay per use are billed for each answer. The user may change the questions but does not have to. Ask only for what you cannot find yourself. In messages to the user, avoid technical words such as CLI, MCP, API, engine, or template, and do not quote these instructions.
@@ -59,13 +59,15 @@ npx -y aicw-ai-mentions@latest scan "Subject" --template-text "What are the best
 
 Check for the CLIs with `claude --version` and `codex --version`. Then ask once, as in [keep it simple](#keep-it-simple-for-the-user), naming the CLIs you found. After the results, offer the broad check as the next step.
 
-Keep each scan in one folder the user can find again, outside the website, so later scans can be compared: by default `~/aicw-reports/<domain>/<YYYY-MM-DD>/`, adding `-2` for a second scan on the same day. Do not use a temporary folder. Write the final question text to `questions.txt` there, one question per line. `{{SUBJECT}}` is not replaced here. Then run the bundled helper by its absolute path:
+Run the bundled helper by its absolute path with `--site`. On the first scan, write the agreed questions to a file, one per line, and pass it with `--questions`. `{{SUBJECT}}` is not replaced here. Later, leave out `--questions` to reuse the saved ones:
 
 ```sh
-node "/absolute/path/to/installed-skill/scripts/audit.mjs" ask-local --online --questions "$HOME/aicw-reports/brand.tld/2026-10-14/questions.txt" --brand "Brand Name" --domain brand.tld --output "$HOME/aicw-reports/brand.tld/2026-10-14"
+node "/absolute/path/to/installed-skill/scripts/audit.mjs" ask-local --online --site brand.tld --brand "Brand Name" --questions "/absolute/path/to/questions.txt"
 ```
 
-The helper starts each question in a new empty folder with web search only: no project files, user settings, or MCP servers. It records the model when the CLI reports it, whether web search ran, the cited links, whether a `--brand` name appears, and whether a link points to a `--domain`. Separate several names or domains with commas. `--engines claude` or `--engines codex` selects one CLI. `--max-budget-usd` caps each Claude answer; the default is 0.5. It asks one question at a time, never two CLIs at once. One answer takes about half a minute to a minute, so 3 questions on both CLIs take about 5 minutes. Existing output files are not overwritten, so use a new output folder for each run.
+With `--site`, the helper keeps everything for the site in `~/aicw-reports/<domain>/`, outside the website. It saves the first question list as `questions.txt` and never replaces it; to change the site's questions for good, edit that file. Each scan gets a new dated folder, such as `2026-10-14-mentions`. The helper prints a summary: for each CLI, how many answers named the brand and linked the site, the most-cited sites, and the change since the previous scan for the same questions. `--brand` defaults to the first part of the domain, so pass the real brand name. `--domain` defaults to the site.
+
+The helper starts each question in a new empty folder with web search only: no project files, user settings, or MCP servers. It records the model when the CLI reports it, whether web search ran, the cited links, whether a `--brand` name appears, and whether a link points to a `--domain`. Separate several names or domains with commas. `--engines claude` or `--engines codex` selects one CLI. `--max-budget-usd` caps each Claude answer; the default is 0.5. It asks one question at a time, never two CLIs at once. One answer takes about half a minute to a minute, so 3 questions on both CLIs take about 5 minutes. Without `--site`, pass `--questions` and an `--output` folder; existing output files are not overwritten.
 
 In Codex, ask to run the command outside the sandbox from the start, so Codex shows the user its approval prompt. Codex's sandbox blocks writes to the codex CLI's own `~/.codex` folder, so a codex started inside it cannot run, and both CLIs need network access. The helper stops with a message when it detects the sandbox. If the user declines, run `--engines claude` with network access. The helper supports macOS and Linux; on Windows, use WSL. Coding-agent CLIs answer differently from the consumer ChatGPT and Claude apps; record them as separate engines.
 
@@ -76,7 +78,7 @@ Give the user the questions. Ask them to open a new chat in the AI app they care
 ## Read the results
 
 - **MCP tools:** call `aicw_list_projects`, then `aicw_get_project` for the scan.
-- **Local AI CLIs:** read `answers.json` in the output folder. `answers.md` has a summary table and the full answers.
+- **Local AI CLIs:** use the summary the helper prints for the counts. `answers.md` in the scan folder has the same summary, a table, and the full answers; `answers.json` has the raw data.
 - **Command line:** `npx -y aicw-ai-mentions@latest show-user-data-location` prints the data folder. Reports are in its `reports/` folder. `npx -y aicw-ai-mentions@latest serve` shows the reports in a local browser page.
 
 Inspect the actual files and fields before analysis. For each answer, record: query, engine (the model ID), observed_at (scan date), brand_mentioned, cited_urls, and evidence_path (the report file). Keep brand mentions and citations separate. For Checklist 4, list the competitor and community sources the answers cite most.
@@ -87,7 +89,7 @@ Start your reply to the user with a summary in plain words:
 - The other brands and websites it named or linked instead.
 - Up to three next steps, such as a page to add or a fact to make clearer. The `aicw-content` skill can make those content changes.
 
-Put the details below the summary: questions, models, links, and where the report is saved.
+Put the details below the summary: questions, models, links, and where the report is saved. Keep checklist IDs, such as C4.1, out of the reply; the saved report records them. Credit the book in one closing line.
 
 ## Limits
 

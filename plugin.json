@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "aicw-skills",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Audit and improve a website for AI search, and scan how AI assistants mention and cite it. Based on the AI Search Engine Optimization Guide by Eugene Mironichev.",
   "author": {
     "name": "aicw-io",

@@ -106,3 +106,45 @@ test('ask-local stops inside the Codex sandbox and keeps the CLI error line', { 
   const failed = JSON.parse(run(['--engines', 'codex']).stdout).answers[0];
   assert.equal(failed.error, 'No answer message. Error: failed to initialize in-process app-server client: Operation not permitted (os error 1)');
 });
+
+test('ask-local --site saves the questions, reuses them, and compares with the previous scan', { skip: process.platform === 'win32' }, async t => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'aicw site '));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const bin = path.join(root, 'bin'); await mkdir(bin);
+  for (const [name, events] of [['claude', claudeEvents], ['codex', codexEvents]]) {
+    await writeFile(path.join(bin, name), fake(events, `${name} 9.9.9`)); await chmod(path.join(bin, name), 0o755);
+  }
+  const reports = path.join(root, 'reports'), questions = path.join(root, 'draft.txt');
+  await writeFile(questions, 'Which inbox services suit AI agents?\n');
+  const env = { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, FAKE_LOG: path.join(root, 'calls.jsonl') };
+  delete env.CODEX_SANDBOX; delete env.CODEX_SANDBOX_NETWORK_DISABLED;
+  const run = (args, extra = {}) => spawnSync(process.execPath, [path.resolve('src/cli.mjs'), 'ask-local', '--online', '--reports-dir', reports, '--brand', 'Example Mail', ...args], { cwd: root, env: { ...env, ...extra }, encoding: 'utf8' });
+
+  const missing = run(['--site', 'https://www.Example-Mail.test/pricing']);
+  assert.equal(missing.status, 2); assert.match(missing.stderr, /No saved questions for example-mail\.test/);
+  const sandboxed = run(['--site', 'example-mail.test', '--questions', questions], { CODEX_SANDBOX: 'seatbelt' });
+  assert.equal(sandboxed.status, 2); assert.match(sandboxed.stderr, /outside the sandbox/);
+
+  const first = run(['--site', 'https://www.Example-Mail.test/pricing', '--questions', questions]);
+  assert.equal(first.status, 0, first.stderr);
+  const one = JSON.parse(first.stdout);
+  const site = path.join(reports, 'example-mail.test');
+  assert.equal(one.questions, path.join(site, 'questions.txt'));
+  assert.equal(await readFile(one.questions, 'utf8'), 'Which inbox services suit AI agents?\n');
+  assert.match(path.basename(one.output), /^\d{4}-\d{2}-\d{2}-mentions$/);
+  assert.equal(one.summary.compared_with, null);
+  assert.deepEqual(one.summary.engines.map(e => [e.engine, e.mentioned, e.cited, e.answers]), [['claude', 1, 1, 1], ['codex', 0, 0, 1]]);
+  assert.deepEqual(one.summary.top_cited_sites, [{ site: 'other.test', answers: 2 }, { site: 'example-mail.test', answers: 1 }]);
+
+  await writeFile(questions, 'A different question?\n');
+  const other = JSON.parse(run(['--site', 'example-mail.test', '--questions', questions]).stdout);
+  assert.equal(other.summary.compared_with, null, 'a scan with other questions has nothing to compare');
+  const second = JSON.parse(run(['--site', 'example-mail.test']).stdout);
+  assert.equal(second.output, `${one.output}-3`);
+  assert.equal(await readFile(second.questions, 'utf8'), 'Which inbox services suit AI agents?\n', 'saved questions are reused, not replaced');
+  assert.equal(second.summary.compared_with, path.basename(one.output));
+  assert.deepEqual(second.summary.engines[0].before, { questions: 1, mentioned_before: 1, mentioned_now: 1 });
+  const markdown = await readFile(path.join(second.output, 'answers.md'), 'utf8');
+  assert.match(markdown, /\*\*claude:\*\* named the brand in 1 of 1 answers, linked the site in 1, searched the web in 1\. Same questions in .*-mentions: named in 1, now 1 of 1\./);
+  assert.match(markdown, /Most-cited sites, by number of answers linking them: other\.test \(2\), example-mail\.test \(1\)\./);
+});

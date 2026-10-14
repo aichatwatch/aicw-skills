@@ -1,6 +1,6 @@
 {
   "name": "aicw-skills",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "private": true,
   "description": "Website optimization skills based on the AI Search Engine Optimization Guide by Eugene Mironichev",
   "type": "module",

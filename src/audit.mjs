@@ -78,6 +78,19 @@ export async function audit(options = {}) {
     } catch (e) { add('sitemap.invalid', 'unknown', 'warning', route, e.message, 'Inspect XML and response evidence, then fix the source generator.'); }
   }
   if (sitemaps.length) { report.coverage.truncated = true; add('sitemap.limit', 'skipped', 'info', identity, 'Sitemap traversal reached 30 documents.', 'Audit additional sitemap branches explicitly.'); }
+  // A sitemap often lists one section first, such as hundreds of blog posts. Count each section and visit them in turn,
+  // so a page limit still samples every page template.
+  const section = route => new URL(route, identity).pathname.replace(/[^/]+\/?$/, '');
+  const sections = new Map();
+  for (const route of sitemapURLs) sections.set(section(route), (sections.get(section(route)) ?? 0) + 1);
+  report.coverage.sitemapSections = Object.fromEntries([...sections].sort((a, b) => b[1] - a[1]).slice(0, 20));
+  if (!explicitPages && queue.length > maxPages) {
+    const [first, ...rest] = queue, groups = new Map();
+    for (const route of rest) { const key = section(route); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(route); }
+    const mixed = [];
+    for (let i = 0; mixed.length < rest.length; i++) for (const group of groups.values()) if (i < group.length) mixed.push(group[i]);
+    queue.splice(0, queue.length, first, ...mixed);
+  }
   if (!sitemapURLs.size) add('sitemap.none', 'review', 'info', identity, 'No page URLs discovered from inspected sitemaps.', 'Inspect robots declarations and the CMS sitemap endpoint. Small linked sites can be discovered without a sitemap.');
   for (let i = 0; i < queue.length && i < maxPages; i++) {
     const route = queue[i];

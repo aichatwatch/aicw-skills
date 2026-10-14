@@ -37,6 +37,20 @@ test('local nested sitemap routes use preview origin and alternate WP sitemap lo
   assert.equal(report.pages.length, 2); assert.ok(hits.includes('/guide/'));
   assert.equal(report.pages[1].url, 'https://aicw.io/guide/');
 });
+test('a page limit samples every sitemap section, not only the first one listed', async t => {
+  const blog = Array.from({ length: 30 }, (_, i) => `/blog/post-${i}/`);
+  const routes = [...blog, '/tools/one/', '/tools/two/', '/tools/category/vector/', '/tools/tag/a/', '/tools/tag/b/', '/tools/tag/c/'];
+  const hits = [];
+  const url = await server(t, (req, res) => {
+    hits.push(req.url);
+    if (req.url === '/sitemap.xml') { res.end(`<urlset>${routes.map(r => `<url><loc>https://aicw.io${r}</loc></url>`).join('')}</urlset>`); return; }
+    if (req.url === '/' || routes.includes(req.url)) { res.setHeader('content-type', 'text/html'); res.end(html); return; }
+    res.statusCode = 404; res.end('missing');
+  });
+  const report = await audit({ url, publicOrigin: 'https://aicw.io', maxPages: 6 });
+  assert.deepEqual(report.pages.map(p => new URL(p.url).pathname), ['/', '/blog/post-0/', '/tools/one/', '/tools/category/vector/', '/tools/tag/a/', '/blog/post-1/']);
+  assert.deepEqual(report.coverage.sitemapSections, { '/blog/': 30, '/tools/tag/': 3, '/tools/': 2, '/tools/category/': 1 });
+});
 test('network failures and robots errors never produce an access pass', async t => {
   const url = await server(t, (req, res) => {
     if (req.url === '/robots.txt') { res.statusCode = 503; res.end('temporary failure'); }

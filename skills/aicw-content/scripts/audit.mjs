@@ -40,7 +40,7 @@ var init_package = __esm({
   "package.json"() {
     package_default = {
       name: "aicw-skills",
-      version: "0.4.2",
+      version: "0.4.3",
       private: true,
       description: "Website optimization skills based on the AI Search Engine Optimization Guide by Eugene Mironichev",
       type: "module",
@@ -13402,8 +13402,9 @@ var init_browser = __esm({
 // src/cli.mjs
 init_version();
 import { parseArgs } from "node:util";
-import { readFile as readFile2, mkdir as mkdir2, writeFile as writeFile2 } from "node:fs/promises";
+import { readFile as readFile3, mkdir as mkdir3, writeFile as writeFile3 } from "node:fs/promises";
 import path5 from "node:path";
+import os2 from "node:os";
 
 // src/audit.mjs
 init_version();
@@ -13519,6 +13520,21 @@ async function audit(options = {}) {
     report.coverage.truncated = true;
     add("sitemap.limit", "skipped", "info", identity, "Sitemap traversal reached 30 documents.", "Audit additional sitemap branches explicitly.");
   }
+  const section = (route) => new URL(route, identity).pathname.replace(/[^/]+\/?$/, "");
+  const sections = /* @__PURE__ */ new Map();
+  for (const route of sitemapURLs) sections.set(section(route), (sections.get(section(route)) ?? 0) + 1);
+  report.coverage.sitemapSections = Object.fromEntries([...sections].sort((a, b) => b[1] - a[1]).slice(0, 20));
+  if (!explicitPages && queue.length > maxPages) {
+    const [first, ...rest] = queue, groups2 = /* @__PURE__ */ new Map();
+    for (const route of rest) {
+      const key = section(route);
+      if (!groups2.has(key)) groups2.set(key, []);
+      groups2.get(key).push(route);
+    }
+    const mixed = [];
+    for (let i = 0; mixed.length < rest.length; i++) for (const group of groups2.values()) if (i < group.length) mixed.push(group[i]);
+    queue.splice(0, queue.length, first, ...mixed);
+  }
   if (!sitemapURLs.size) add("sitemap.none", "review", "info", identity, "No page URLs discovered from inspected sitemaps.", "Inspect robots declarations and the CMS sitemap endpoint. Small linked sites can be discovered without a sitemap.");
   for (let i = 0; i < queue.length && i < maxPages; i++) {
     const route = queue[i];
@@ -13588,6 +13604,7 @@ function markdownReport(report) {
     "",
     `Inspected ${report.coverage.inspected} pages. Mode: ${report.mode}. Coverage truncated: ${report.coverage.truncated ? "yes" : "no"}.`,
     "",
+    ...Object.keys(report.coverage.sitemapSections ?? {}).length ? [`Sitemap URLs by section: ${Object.entries(report.coverage.sitemapSections).map(([s, n]) => `${md(s)} ${n}`).join(", ")}.`, ""] : [],
     "A pass applies only to its stated check. Review items need judgment. Unknown and skipped checks are not passes.",
     "",
     "Book-application findings apply a checklist principle. Implementation-check findings are engineering checks used to inspect that principle; their exact algorithms are not in the book. Current-correction findings update a printed example using the linked technical definition.",
@@ -13686,7 +13703,7 @@ init_book();
 // src/local-answers.mjs
 init_book();
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, mkdir as mkdir2, readdir as readdir2, readFile as readFile2, writeFile as writeFile2 } from "node:fs/promises";
 import os from "node:os";
 import path4 from "node:path";
 var PARENT_SESSION = ["CLAUDECODE", "CLAUDE_PID", "CLAUDE_EFFORT", "CLAUDE_CODE_ENTRYPOINT", "CLAUDE_CODE_EXECPATH", "CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_CHILD_SESSION", "CLAUDE_CODE_SESSION_ATTENDED", "CLAUDE_CODE_MESSAGING_SOCKET", "CLAUDE_CODE_MESSAGING_TOKEN"];
@@ -13709,6 +13726,77 @@ var ENGINES = {
     }
   }
 };
+function siteName(value) {
+  let host;
+  try {
+    host = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+  }
+  if (!host || !/^[a-z0-9-]+(?:\.[a-z0-9-]+)+$/.test(host)) throw new Error(`--site needs a domain such as example.com, not: ${value}`);
+  return host;
+}
+var day = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+async function prepareSite({ site, reportsDir, questionsFile, now = /* @__PURE__ */ new Date() }) {
+  const dir = path4.join(reportsDir, site), saved = path4.join(dir, "questions.txt");
+  await mkdir2(dir, { recursive: true });
+  let text;
+  if (questionsFile) {
+    text = await readFile2(questionsFile, "utf8");
+    readQuestions(text);
+    await writeFile2(saved, text, { flag: "wx" }).catch((e) => {
+      if (e.code !== "EEXIST") throw e;
+    });
+  } else {
+    text = await readFile2(saved, "utf8").catch((e) => {
+      throw e.code === "ENOENT" ? new Error(`No saved questions for ${site}. Write them to ${saved}, one per line, or pass --questions FILE.`) : e;
+    });
+  }
+  const taken = new Set(await readdir2(dir));
+  let name = `${day(now)}-mentions`;
+  for (let n = 2; taken.has(name); n++) name = `${day(now)}-mentions-${n}`;
+  const questions = readQuestions(text);
+  return { dir, savedQuestions: saved, questions, output: path4.join(dir, name), previous: await latestScan(dir, questions) };
+}
+async function latestScan(dir, questions) {
+  const scans = [];
+  for (const entry of await readdir2(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    try {
+      const result = JSON.parse(await readFile2(path4.join(dir, entry.name, "answers.json"), "utf8"));
+      if (result.tool === "ask-local" && result.answers?.some((a) => questions.includes(a.question))) scans.push({ folder: entry.name, result, at: result.answers[0].observed_at });
+    } catch {
+    }
+  }
+  return scans.sort((a, b) => a.at.localeCompare(b.at)).at(-1) ?? null;
+}
+function summarize(r, previous = null) {
+  const host = (url) => {
+    try {
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      return null;
+    }
+  };
+  const engines = [...new Set(r.answers.map((a) => a.engine))].map((name) => {
+    const all = r.answers.filter((a) => a.engine === name), ok = all.filter((a) => !a.error);
+    const count = (list2, key) => list2.some((a) => a[key] === null) ? null : list2.filter((a) => a[key]).length;
+    const before = previous?.result.answers.filter((a) => a.engine === name && !a.error) ?? [];
+    const same = ok.filter((a) => before.some((b) => b.question === a.question));
+    const mentioned = count(ok, "brand_mentioned");
+    return {
+      engine: name,
+      answers: ok.length,
+      errors: all.length - ok.length,
+      mentioned,
+      cited: count(ok, "brand_cited"),
+      web_search: ok.filter((a) => a.web_search_used).length,
+      before: same.length && mentioned !== null ? { questions: same.length, mentioned_before: before.filter((b) => same.some((a) => a.question === b.question) && b.brand_mentioned).length, mentioned_now: count(same, "brand_mentioned") } : null
+    };
+  });
+  const sites = /* @__PURE__ */ new Map();
+  for (const a of r.answers) for (const h of new Set(a.cited_urls.map(host).filter(Boolean))) sites.set(h, (sites.get(h) ?? 0) + 1);
+  return { engines, top_cited_sites: [...sites].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10).map(([site, answers]) => ({ site, answers })), compared_with: previous?.folder ?? null };
+}
 function readQuestions(text) {
   const questions = text.split(/\r?\n/).map((x) => x.trim().replace(/^(?:[-*]|\d+[.)])\s+/, "")).filter((x) => x && !x.startsWith("#"));
   if (!questions.length || questions.length > 20) throw new Error("Supply 1 to 20 questions, one per line.");
@@ -13813,12 +13901,31 @@ async function askLocal({ questions, engines, brands = [], domains = [], timeout
 }
 function answersMarkdown(r) {
   const cell = (v) => v === null ? "n/a" : v === true ? "yes" : v === false ? "no" : String(v).replace(/\|/g, "\\|").replace(/\n/g, " ");
+  const s = r.summary ?? summarize(r);
+  const line = (e) => [
+    `- **${e.engine}:** ${e.mentioned === null ? "brand not set" : `named the brand in ${e.mentioned} of ${e.answers} answers`}`,
+    e.cited === null ? "" : `, linked the site in ${e.cited}`,
+    `, searched the web in ${e.web_search}`,
+    e.errors ? `; ${e.errors} failed` : "",
+    ".",
+    e.before ? ` Same questions in ${s.compared_with}: named in ${e.before.mentioned_before}, now ${e.before.mentioned_now} of ${e.before.questions}.` : ""
+  ].join("");
   return [
     "# Local AI answers",
     "",
     `Based on ${r.book.author}\u2019s [${r.book.title}](${r.book.url}), pages ${r.bookPages}.`,
     "",
     `Brands: ${r.brands.join(", ") || "not set"}. Domains: ${r.domains.join(", ") || "not set"}.`,
+    "",
+    "## Summary",
+    "",
+    ...s.engines.map(line),
+    "",
+    s.top_cited_sites.length ? `Most-cited sites, by number of answers linking them: ${s.top_cited_sites.map((x) => `${x.site} (${x.answers})`).join(", ")}.` : "No answer linked to a website.",
+    "",
+    "Book checklist: these answers record C4.1 (visibility in AI answers) and sample C4.2 (frequently cited sources). C4.3 to C4.6 need other evidence and are not assessed here.",
+    "",
+    "## Answers",
     "",
     "| Engine | Model | Question | Web search | Mentioned | Cited | Links | Error |",
     "| --- | --- | --- | --- | --- | --- | --- | --- |",
@@ -13844,10 +13951,11 @@ compare --before audit.json --after audit.json
 prepare-submission --origin https://site.tld --urls FILE [--sitemap URL]
                    [--key KEY] [--output DIR]
 presence --origin https://site.tld --online
-ask-local --questions FILE --online [--engines claude,codex]
-          [--brand NAME[,NAME]] [--domain site.tld[,site.tld]]
+ask-local --site site.tld --online [--questions FILE] [--reports-dir DIR]
+ask-local --questions FILE --online [--output DIR]
+          [--engines claude,codex] [--brand NAME[,NAME]] [--domain site.tld[,site.tld]]
           [--claude-model MODEL] [--codex-model MODEL]
-          [--max-budget-usd 0.5] [--timeout 300000] [--output DIR]
+          [--max-budget-usd 0.5] [--timeout 300000]
 
 Audit is read-only except for an explicitly requested report directory.
 Without --output, JSON goes to stdout. No command edits website sources.
@@ -13861,6 +13969,10 @@ ask-local sends each question to the installed claude and codex CLIs, using the
 user's own accounts, in an empty folder with web search only, one answer at
 a time. It prints the
 answers, cited links, and brand mentions. It never writes to the website.
+With --site, questions and scans live in ~/aicw-reports/<site>/: the first
+--questions list is saved as questions.txt and reused when --questions is
+omitted, each scan gets a dated folder, and the summary compares it with the
+previous scan. --brand defaults to the first part of the site name.
 `;
 async function main(argv = process.argv.slice(2)) {
   const { values: v, positionals } = parseArgs({ args: argv, allowPositionals: true, options: {
@@ -13886,6 +13998,8 @@ async function main(argv = process.argv.slice(2)) {
     engines: { type: "string" },
     brand: { type: "string" },
     domain: { type: "string" },
+    site: { type: "string" },
+    "reports-dir": { type: "string" },
     "claude-model": { type: "string" },
     "codex-model": { type: "string" },
     "max-budget-usd": { type: "string" },
@@ -13912,14 +14026,14 @@ async function main(argv = process.argv.slice(2)) {
     if (v["fail-on-error"] && report.findings.some((f) => f.status === "fail" && f.severity === "error")) process.exitCode = 1;
   } else if (command === "compare") {
     if (!v.before || !v.after) throw new Error("compare requires --before and --after.");
-    console.log(JSON.stringify(compareReports(JSON.parse(await readFile2(v.before, "utf8")), JSON.parse(await readFile2(v.after, "utf8"))), null, 2));
+    console.log(JSON.stringify(compareReports(JSON.parse(await readFile3(v.before, "utf8")), JSON.parse(await readFile3(v.after, "utf8"))), null, 2));
   } else if (command === "prepare-submission") {
     if (!v.origin || !v.urls) throw new Error("Supply --origin and --urls (a text file with one URL per line).");
-    const urls = (await readFile2(v.urls, "utf8")).split(/\r?\n/).map((x) => x.trim()).filter((x) => x && !x.startsWith("#"));
+    const urls = (await readFile3(v.urls, "utf8")).split(/\r?\n/).map((x) => x.trim()).filter((x) => x && !x.startsWith("#"));
     const prepared = prepareSubmission({ origin: v.origin, urls, sitemap: v.sitemap, key: v.key });
     if (v.output) {
-      await mkdir2(v.output, { recursive: true });
-      for (const [name, value] of [["submission.json", JSON.stringify(prepared, null, 2)], ["indexnow.json", JSON.stringify(prepared.indexnow.payload, null, 2)], [prepared.keyFile.name, prepared.keyFile.content]]) await writeFile2(path5.join(v.output, name), value + "\n", { flag: "wx" });
+      await mkdir3(v.output, { recursive: true });
+      for (const [name, value] of [["submission.json", JSON.stringify(prepared, null, 2)], ["indexnow.json", JSON.stringify(prepared.indexnow.payload, null, 2)], [prepared.keyFile.name, prepared.keyFile.content]]) await writeFile3(path5.join(v.output, name), value + "\n", { flag: "wx" });
       console.log(JSON.stringify({ status: prepared.status, output: path5.resolve(v.output) }));
     } else console.log(JSON.stringify(prepared, null, 2));
   } else if (command === "presence") {
@@ -13935,16 +14049,23 @@ async function main(argv = process.argv.slice(2)) {
     const response = await fetchCapture(endpoint, { origin });
     console.log(JSON.stringify({ book: BOOK_SOURCE, bookPages: "32-37", status: response.status === 200 ? "observed" : response.status === 404 ? "not-found-in-this-index" : "unknown", index: latest.id, httpStatus: response.status, sample: response.status === 200 ? response.text.split("\n").filter(Boolean).slice(0, 5).map((x) => JSON.parse(x)) : [], limitation: "One index and a bounded sample only. Presence does not prove training use, indexing elsewhere, or AI citation." }, null, 2));
   } else if (command === "ask-local") {
-    if (!v.online || !v.questions) throw new Error("ask-local requires --questions FILE and explicit --online.");
+    if (!v.online || !(v.questions || v.site)) throw new Error("ask-local requires --site SITE or --questions FILE, and explicit --online.");
     const list2 = (key) => v[key]?.split(",").map((x) => x.trim()).filter(Boolean) ?? [];
+    const site = v.site ? siteName(v.site) : null;
+    if (site && process.env.CODEX_SANDBOX) throw new Error("Inside the Codex sandbox, the codex CLI cannot start and the reports folder cannot be written. Ask to run ask-local outside the sandbox, so Codex asks the user to approve.");
     const budget = Number(v["max-budget-usd"] ?? 0.5), timeout = Number(v.timeout ?? 3e5);
     if (!(budget > 0)) throw new Error("--max-budget-usd must be a positive number.");
     if (!Number.isSafeInteger(timeout) || timeout < 1e3) throw new Error("--timeout must be at least 1000 milliseconds.");
-    const result = await askLocal({ questions: readQuestions(await readFile2(v.questions, "utf8")), engines: v.engines ? list2("engines") : void 0, brands: list2("brand"), domains: list2("domain").map((d) => d.toLowerCase().replace(/^www\./, "")), timeout, maxBudgetUSD: budget, claudeModel: v["claude-model"], codexModel: v["codex-model"], log: (line) => console.error(line) });
-    if (v.output) {
-      await mkdir2(v.output, { recursive: true });
-      for (const [name, value] of [["answers.json", JSON.stringify(result, null, 2)], ["answers.md", answersMarkdown(result)]]) await writeFile2(path5.join(v.output, name), value + "\n", { flag: "wx" });
-      console.log(JSON.stringify({ output: path5.resolve(v.output), engines: result.engines, answers: result.answers.length, errors: result.answers.filter((a) => a.error).length }));
+    const plan = site ? await prepareSite({ site, reportsDir: path5.resolve(v["reports-dir"] ?? path5.join(os2.homedir(), "aicw-reports")), questionsFile: v.questions }) : null;
+    const brands = list2("brand").length ? list2("brand") : site ? [site.split(".")[0]] : [];
+    const domains = (list2("domain").length ? list2("domain") : site ? [site] : []).map((d) => d.toLowerCase().replace(/^www\./, ""));
+    const result = await askLocal({ questions: plan?.questions ?? readQuestions(await readFile3(v.questions, "utf8")), engines: v.engines ? list2("engines") : void 0, brands, domains, timeout, maxBudgetUSD: budget, claudeModel: v["claude-model"], codexModel: v["codex-model"], log: (line) => console.error(line) });
+    result.summary = summarize(result, plan?.previous);
+    const output = v.output ?? plan?.output;
+    if (output) {
+      await mkdir3(output, { recursive: true });
+      for (const [name, value] of [["answers.json", JSON.stringify(result, null, 2)], ["answers.md", answersMarkdown(result)]]) await writeFile3(path5.join(output, name), value + "\n", { flag: "wx" });
+      console.log(JSON.stringify({ output: path5.resolve(output), questions: plan?.savedQuestions ?? null, engines: result.engines, answers: result.answers.length, errors: result.answers.filter((a) => a.error).length, summary: result.summary }, null, 2));
     } else console.log(JSON.stringify(result, null, 2));
   } else throw new Error(`Unknown command: ${command}`);
 }
