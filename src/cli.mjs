@@ -2,12 +2,13 @@ import { VERSION } from './version.mjs';
 import { parseArgs } from 'node:util';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { audit } from './audit.mjs';
 import { writeReport, compareReports } from './report.mjs';
 import { prepareSubmission, publicURL } from './submission.mjs';
 import { fetchCapture } from './io.mjs';
 import { BOOK_SOURCE } from './book.mjs';
-import { askLocal, answersMarkdown, readQuestions } from './local-answers.mjs';
+import { askLocal, answersMarkdown, readQuestions, siteName, prepareSite, summarize } from './local-answers.mjs';
 
 const help = `AICW Skills ${VERSION} (Node.js 22+)
 Based on ${BOOK_SOURCE.author}'s ${BOOK_SOURCE.title}
@@ -22,10 +23,11 @@ compare --before audit.json --after audit.json
 prepare-submission --origin https://site.tld --urls FILE [--sitemap URL]
                    [--key KEY] [--output DIR]
 presence --origin https://site.tld --online
-ask-local --questions FILE --online [--engines claude,codex]
-          [--brand NAME[,NAME]] [--domain site.tld[,site.tld]]
+ask-local --site site.tld --online [--questions FILE] [--reports-dir DIR]
+ask-local --questions FILE --online [--output DIR]
+          [--engines claude,codex] [--brand NAME[,NAME]] [--domain site.tld[,site.tld]]
           [--claude-model MODEL] [--codex-model MODEL]
-          [--max-budget-usd 0.5] [--timeout 300000] [--output DIR]
+          [--max-budget-usd 0.5] [--timeout 300000]
 
 Audit is read-only except for an explicitly requested report directory.
 Without --output, JSON goes to stdout. No command edits website sources.
@@ -39,6 +41,10 @@ ask-local sends each question to the installed claude and codex CLIs, using the
 user's own accounts, in an empty folder with web search only, one answer at
 a time. It prints the
 answers, cited links, and brand mentions. It never writes to the website.
+With --site, questions and scans live in ~/aicw-reports/<site>/: the first
+--questions list is saved as questions.txt and reused when --questions is
+omitted, each scan gets a dated folder, and the summary compares it with the
+previous scan. --brand defaults to the first part of the site name.
 `;
 export async function main(argv = process.argv.slice(2)) {
   const { values: v, positionals } = parseArgs({ args: argv, allowPositionals: true, options: {
@@ -48,7 +54,7 @@ export async function main(argv = process.argv.slice(2)) {
     'browser-module': { type: 'string' }, 'browser-executable': { type: 'string' }, timeout: { type: 'string' },
     before: { type: 'string' }, after: { type: 'string' }, origin: { type: 'string' }, urls: { type: 'string' },
     sitemap: { type: 'string' }, key: { type: 'string' }, questions: { type: 'string' }, engines: { type: 'string' },
-    brand: { type: 'string' }, domain: { type: 'string' }, 'claude-model': { type: 'string' }, 'codex-model': { type: 'string' }, 'max-budget-usd': { type: 'string' }, help: { type: 'boolean', short: 'h' }, 'fail-on-error': { type: 'boolean' },
+    brand: { type: 'string' }, domain: { type: 'string' }, site: { type: 'string' }, 'reports-dir': { type: 'string' }, 'claude-model': { type: 'string' }, 'codex-model': { type: 'string' }, 'max-budget-usd': { type: 'string' }, help: { type: 'boolean', short: 'h' }, 'fail-on-error': { type: 'boolean' },
   } });
   if (v.help || !positionals.length) { console.log(help); return; }
   if (positionals.length !== 1) throw new Error('Supply one command and named options.');
@@ -84,16 +90,23 @@ export async function main(argv = process.argv.slice(2)) {
     const response = await fetchCapture(endpoint, { origin });
     console.log(JSON.stringify({ book: BOOK_SOURCE, bookPages: '32-37', status: response.status === 200 ? 'observed' : response.status === 404 ? 'not-found-in-this-index' : 'unknown', index: latest.id, httpStatus: response.status, sample: response.status === 200 ? response.text.split('\n').filter(Boolean).slice(0, 5).map(x => JSON.parse(x)) : [], limitation: 'One index and a bounded sample only. Presence does not prove training use, indexing elsewhere, or AI citation.' }, null, 2));
   } else if (command === 'ask-local') {
-    if (!v.online || !v.questions) throw new Error('ask-local requires --questions FILE and explicit --online.');
+    if (!v.online || !(v.questions || v.site)) throw new Error('ask-local requires --site SITE or --questions FILE, and explicit --online.');
     const list = key => v[key]?.split(',').map(x => x.trim()).filter(Boolean) ?? [];
+    const site = v.site ? siteName(v.site) : null;
+    if (site && process.env.CODEX_SANDBOX) throw new Error('Inside the Codex sandbox, the codex CLI cannot start and the reports folder cannot be written. Ask to run ask-local outside the sandbox, so Codex asks the user to approve.');
     const budget = Number(v['max-budget-usd'] ?? 0.5), timeout = Number(v.timeout ?? 300000);
     if (!(budget > 0)) throw new Error('--max-budget-usd must be a positive number.');
     if (!Number.isSafeInteger(timeout) || timeout < 1000) throw new Error('--timeout must be at least 1000 milliseconds.');
-    const result = await askLocal({ questions: readQuestions(await readFile(v.questions, 'utf8')), engines: v.engines ? list('engines') : undefined, brands: list('brand'), domains: list('domain').map(d => d.toLowerCase().replace(/^www\./, '')), timeout, maxBudgetUSD: budget, claudeModel: v['claude-model'], codexModel: v['codex-model'], log: line => console.error(line) });
-    if (v.output) {
-      await mkdir(v.output, { recursive: true });
-      for (const [name, value] of [['answers.json', JSON.stringify(result, null, 2)], ['answers.md', answersMarkdown(result)]]) await writeFile(path.join(v.output, name), value + '\n', { flag: 'wx' });
-      console.log(JSON.stringify({ output: path.resolve(v.output), engines: result.engines, answers: result.answers.length, errors: result.answers.filter(a => a.error).length }));
+    const plan = site ? await prepareSite({ site, reportsDir: path.resolve(v['reports-dir'] ?? path.join(os.homedir(), 'aicw-reports')), questionsFile: v.questions }) : null;
+    const brands = list('brand').length ? list('brand') : site ? [site.split('.')[0]] : [];
+    const domains = (list('domain').length ? list('domain') : site ? [site] : []).map(d => d.toLowerCase().replace(/^www\./, ''));
+    const result = await askLocal({ questions: plan?.questions ?? readQuestions(await readFile(v.questions, 'utf8')), engines: v.engines ? list('engines') : undefined, brands, domains, timeout, maxBudgetUSD: budget, claudeModel: v['claude-model'], codexModel: v['codex-model'], log: line => console.error(line) });
+    result.summary = summarize(result, plan?.previous);
+    const output = v.output ?? plan?.output;
+    if (output) {
+      await mkdir(output, { recursive: true });
+      for (const [name, value] of [['answers.json', JSON.stringify(result, null, 2)], ['answers.md', answersMarkdown(result)]]) await writeFile(path.join(output, name), value + '\n', { flag: 'wx' });
+      console.log(JSON.stringify({ output: path.resolve(output), questions: plan?.savedQuestions ?? null, engines: result.engines, answers: result.answers.length, errors: result.answers.filter(a => a.error).length, summary: result.summary }, null, 2));
     } else console.log(JSON.stringify(result, null, 2));
   } else throw new Error(`Unknown command: ${command}`);
 }

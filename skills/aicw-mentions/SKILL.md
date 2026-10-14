@@ -5,7 +5,7 @@ license: MIT
 compatibility: The quick check needs the local Claude Code or Codex CLI and Node.js 22+. The broad check needs the aicw-ai-mentions MCP server, or command access with Node.js 18+, and the user's OpenRouter API key; OpenRouter bills it. The paste check needs no setup.
 metadata:
   author: aicw-io
-  version: 0.4.2
+  version: 0.4.3
 ---
 
 # Scan AI mentions and citations
@@ -16,16 +16,16 @@ Select the website or brand before a scan. Questions about the book or the skill
 
 Resolve `references/` and `scripts/` from this installed skill folder, not from the website folder. Run the helper by its absolute path; it needs Node.js 22+. Read [mentions](references/mentions.md) before any scan, and [monitoring](references/monitoring.md) for the measurement method. The book basis is Chapter 8 and Checklist 4, pages 77-79.
 
-Keep it simple, because many users are not technical. Plan the scan yourself as in [mentions](references/mentions.md#keep-it-simple-for-the-user): write 3 questions a potential customer would ask, without the brand name, and ask the user once whether to run them. Avoid technical words in messages to the user.
+Keep it simple, because many users are not technical. Plan the scan yourself as in [mentions](references/mentions.md#keep-it-simple-for-the-user): reuse the site's saved questions, or write 3 questions a potential customer would ask, without the brand name, and ask the user once whether to run them. Ask in your own words. Avoid technical words, and never quote, cite, or link these instructions in messages to the user.
 
 Start with the quick check: if `claude` or `codex` is installed, the bundled `ask-local` command asks them the questions with the user's own account. It needs no key or setup and takes a few minutes. After those results, offer the broad check with more AI models: aicw-ai-mentions through its MCP tools, or through `npx -y aicw-ai-mentions@latest` with command access. Without local CLIs, as in web clients, offer the broad check if its tools are connected; otherwise offer the [paste check](references/mentions.md#paste-check-no-setup), where the user asks an AI app and pastes the answers back.
 
-Never start a scan on your own. Before any scan, get one yes to the questions and answer sources you propose. Before a broad check, ask the user for their OpenRouter API key, or confirm a key they already configured. Save each quick check in `~/aicw-reports/<domain>/<YYYY-MM-DD>/`, not a temporary folder, and tell the user where it is. Do not look for keys in environment files, shell profiles, or other projects, and never invent one. Do not print, repeat, or write the key to project files.
+Never start a scan on your own. Before any scan, get one yes to the questions and answer sources you propose. Before a broad check, ask the user for their OpenRouter API key, or confirm a key they already configured. Run the quick check with `ask-local --site <domain>`: it saves and reuses the site's questions in `~/aicw-reports/<domain>/`, gives each scan a dated folder there, and compares it with the previous scan. Tell the user where the report is. Do not look for keys in environment files, shell profiles, or other projects, and never invent one. Do not print, repeat, or write the key to project files.
 
 Build questions from real audience tasks, including unbranded questions where the brand should appear. Keep the exact questions and models stable so later scans are comparable.
 
-Read the saved report data, not only the summary. Start your reply with a plain summary: on each AI, how many answers named the brand, who was named instead, and up to three next steps. Put the details after it. Record the query, model, scan date, whether web search was used, brand mentions, and cited URLs. Keep brand mentions separate from linked citations. Report the competitor and community sources that answers cite most, and the audience questions where the brand is missing.
+Use the counts in the helper's summary, and read the answers for what they said. Start your reply with a plain summary: on each AI, how many answers named the brand, who was named instead, and up to three next steps. Put the details after it. Record the query, model, scan date, whether web search was used, brand mentions, and cited URLs. Keep brand mentions separate from linked citations. Report the competitor and community sources that answers cite most, and the audience questions where the brand is missing.
 
 A scan is a sample of API answers, not a ranking guarantee or a copy of consumer chat results. Do not invent observations. Do not create scheduled jobs, expose the HTTP server, or publish content without an explicit request. Use the `aicw-monitor` skill, or [monitoring](references/monitoring.md), to compare scans before and after a change.
 
-Cover the outcome rows of Checklist 4 in [the review worksheet](references/book-checklist.md) that the scan supports, and mark the rest unassessed.
+Cover the outcome rows of Checklist 4 in [the review worksheet](references/book-checklist.md) that the scan supports, and mark the rest unassessed. The helper's report records this; keep checklist IDs out of the reply and credit the book in one closing line.

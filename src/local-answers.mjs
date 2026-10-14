@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { BOOK_SOURCE } from './book.mjs';
@@ -27,6 +27,63 @@ export const ENGINES = {
     },
   },
 };
+
+export function siteName(value) {
+  let host;
+  try { host = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`).hostname.toLowerCase().replace(/^www\./, ''); } catch {}
+  if (!host || !/^[a-z0-9-]+(?:\.[a-z0-9-]+)+$/.test(host)) throw new Error(`--site needs a domain such as example.com, not: ${value}`);
+  return host;
+}
+const day = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// Each site keeps one question list and all its scans in one folder, so later scans reuse the questions and can be compared.
+export async function prepareSite({ site, reportsDir, questionsFile, now = new Date() }) {
+  const dir = path.join(reportsDir, site), saved = path.join(dir, 'questions.txt');
+  await mkdir(dir, { recursive: true });
+  let text;
+  if (questionsFile) {
+    text = await readFile(questionsFile, 'utf8'); readQuestions(text);
+    await writeFile(saved, text, { flag: 'wx' }).catch(e => { if (e.code !== 'EEXIST') throw e; });
+  } else {
+    text = await readFile(saved, 'utf8').catch(e => { throw e.code === 'ENOENT' ? new Error(`No saved questions for ${site}. Write them to ${saved}, one per line, or pass --questions FILE.`) : e; });
+  }
+  const taken = new Set(await readdir(dir));
+  let name = `${day(now)}-mentions`;
+  for (let n = 2; taken.has(name); n++) name = `${day(now)}-mentions-${n}`;
+  const questions = readQuestions(text);
+  return { dir, savedQuestions: saved, questions, output: path.join(dir, name), previous: await latestScan(dir, questions) };
+}
+// The newest earlier scan that asked at least one of these questions.
+export async function latestScan(dir, questions) {
+  const scans = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    try {
+      const result = JSON.parse(await readFile(path.join(dir, entry.name, 'answers.json'), 'utf8'));
+      if (result.tool === 'ask-local' && result.answers?.some(a => questions.includes(a.question))) scans.push({ folder: entry.name, result, at: result.answers[0].observed_at });
+    } catch {}
+  }
+  return scans.sort((a, b) => a.at.localeCompare(b.at)).at(-1) ?? null;
+}
+
+// Counts per engine and the most-cited sites, so every agent reports the same numbers.
+export function summarize(r, previous = null) {
+  const host = url => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return null; } };
+  const engines = [...new Set(r.answers.map(a => a.engine))].map(name => {
+    const all = r.answers.filter(a => a.engine === name), ok = all.filter(a => !a.error);
+    const count = (list, key) => list.some(a => a[key] === null) ? null : list.filter(a => a[key]).length;
+    const before = previous?.result.answers.filter(a => a.engine === name && !a.error) ?? [];
+    const same = ok.filter(a => before.some(b => b.question === a.question));
+    const mentioned = count(ok, 'brand_mentioned');
+    return {
+      engine: name, answers: ok.length, errors: all.length - ok.length, mentioned, cited: count(ok, 'brand_cited'), web_search: ok.filter(a => a.web_search_used).length,
+      before: same.length && mentioned !== null ? { questions: same.length, mentioned_before: before.filter(b => same.some(a => a.question === b.question) && b.brand_mentioned).length, mentioned_now: count(same, 'brand_mentioned') } : null,
+    };
+  });
+  const sites = new Map();
+  for (const a of r.answers) for (const h of new Set(a.cited_urls.map(host).filter(Boolean))) sites.set(h, (sites.get(h) ?? 0) + 1);
+  return { engines, top_cited_sites: [...sites].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10).map(([site, answers]) => ({ site, answers })), compared_with: previous?.folder ?? null };
+}
 
 export function readQuestions(text) {
   const questions = text.split(/\r?\n/).map(x => x.trim().replace(/^(?:[-*]|\d+[.)])\s+/, '')).filter(x => x && !x.startsWith('#'));
@@ -98,10 +155,20 @@ export async function askLocal({ questions, engines, brands = [], domains = [], 
 
 export function answersMarkdown(r) {
   const cell = v => v === null ? 'n/a' : v === true ? 'yes' : v === false ? 'no' : String(v).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  const s = r.summary ?? summarize(r);
+  const line = e => [
+    `- **${e.engine}:** ${e.mentioned === null ? 'brand not set' : `named the brand in ${e.mentioned} of ${e.answers} answers`}`,
+    e.cited === null ? '' : `, linked the site in ${e.cited}`, `, searched the web in ${e.web_search}`, e.errors ? `; ${e.errors} failed` : '', '.',
+    e.before ? ` Same questions in ${s.compared_with}: named in ${e.before.mentioned_before}, now ${e.before.mentioned_now} of ${e.before.questions}.` : '',
+  ].join('');
   return [
     '# Local AI answers', '',
     `Based on ${r.book.author}’s [${r.book.title}](${r.book.url}), pages ${r.bookPages}.`, '',
     `Brands: ${r.brands.join(', ') || 'not set'}. Domains: ${r.domains.join(', ') || 'not set'}.`, '',
+    '## Summary', '', ...s.engines.map(line), '',
+    s.top_cited_sites.length ? `Most-cited sites, by number of answers linking them: ${s.top_cited_sites.map(x => `${x.site} (${x.answers})`).join(', ')}.` : 'No answer linked to a website.', '',
+    'Book checklist: these answers record C4.1 (visibility in AI answers) and sample C4.2 (frequently cited sources). C4.3 to C4.6 need other evidence and are not assessed here.', '',
+    '## Answers', '',
     '| Engine | Model | Question | Web search | Mentioned | Cited | Links | Error |', '| --- | --- | --- | --- | --- | --- | --- | --- |',
     ...r.answers.map(a => `| ${cell(a.engine)} | ${cell(a.model)} | ${cell(a.question)} | ${cell(a.web_search_used)} | ${cell(a.brand_mentioned)} | ${cell(a.brand_cited)} | ${a.cited_urls.length} | ${cell(a.error)} |`), '',
     ...r.answers.flatMap(a => [`## ${a.engine}: ${a.question}`, '', `Observed ${a.observed_at}. Model: ${a.model ?? 'not reported'}.`, '', a.answer || `_No answer: ${a.error}_`, '']),
