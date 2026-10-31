@@ -1,6 +1,6 @@
 # Book checklist review worksheet
 
-Based on Eugene Mironichev’s [AI Search Engine Optimization Guide](https://aicw.io/books/ai-seo-guide/), full 84-page PDF. The items below are paraphrases of its four checklists.
+Based on Eugene Mironichev’s [AI Search Engine Optimization Guide](https://aichatwatch.com/books/ai-seo-guide/), full 84-page PDF. The items below are paraphrases of its four checklists.
 
 For each relevant item, record: page or site scope, status, quoted or measured evidence with its location, proposed action, authoritative source to edit, and verification after the edit. Use satisfied, partial, gap, not-assessed, or not-applicable. Explain not-applicable decisions. Keep before and after assessments separate.
 

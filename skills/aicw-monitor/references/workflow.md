@@ -4,7 +4,7 @@ These are execution instructions for applying the book with available tools. The
 
 ## Select the website and access
 
-Use the website identified by the user or unambiguous project context. If no target is clear, ask which website to use and whether access is through a URL, local project, or connected CMS. Do not choose the first connected site, the book’s aicw.io link, or a sample domain. Do not repeat questions already answered.
+Use the website identified by the user or unambiguous project context. If no target is clear, ask which website to use and whether access is through a URL, local project, or connected CMS. Do not choose the first connected site, the book’s aichatwatch.com link, or a sample domain. Do not repeat questions already answered.
 
 Match the selected project, public or preview URL, and any CMS account or site ID before using them together. If several sites or environments fit, resolve that ambiguity before site-specific work. A local project can be reviewed without a public address; ask for one only when URL identity or an external action needs it.
 

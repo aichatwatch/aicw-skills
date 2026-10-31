@@ -1,8 +1,8 @@
 {
   "name": "aicw-io",
   "owner": {
-    "name": "aicw-io",
-    "url": "https://aicw.io"
+    "name": "AI Chat Watch (AICW)",
+    "url": "https://aichatwatch.com"
   },
   "description": "AICW tools for AI search optimization and AI mention monitoring",
   "plugins": [

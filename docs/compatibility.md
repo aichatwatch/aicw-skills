@@ -22,15 +22,15 @@ For Claude Code, copying `skills/aicw-jsonld` produces `.claude/skills/aicw-json
 
 ## Plugins and mention scans
 
-The repository is also a plugin for Claude Code, Codex, and the ChatGPT desktop app. The plugin installs all seven skills and the [aicw-ai-mentions](https://github.com/aicw-io/aicw-ai-mentions) MCP server, which `aicw-mentions` uses to scan AI answers. The server starts with `npx -y aicw-ai-mentions@latest mcp` and needs Node.js 18+. It asks for no key at startup; the skill asks for the user's OpenRouter API key before the first scan and stores it with the server's encrypted key tool.
+The repository is also a plugin for Claude Code, Codex, and the ChatGPT desktop app. The plugin installs all seven skills and the [aicw-ai-mentions](https://github.com/aichatwatch/aicw-ai-mentions) MCP server, which `aicw-mentions` uses to scan AI answers. The server starts with `npx -y aicw-ai-mentions@latest mcp` and needs Node.js 18+. It asks for no key at startup; the skill asks for the user's OpenRouter API key before the first scan and stores it with the server's encrypted key tool.
 
 | Client | Install | Mention scans |
 | --- | --- | --- |
-| Claude Code | `/plugin install aicw-skills --marketplace aicw-io/aicw-skills` | Included MCP server |
-| Codex CLI and ChatGPT desktop app | `codex plugin marketplace add aicw-io/aicw-skills`, then install `aicw-skills` from the Plugins Directory or with `codex plugin add aicw-skills@aicw-io` | Included MCP server |
+| Claude Code | `/plugin install aicw-skills --marketplace aichatwatch/aicw-skills` | Included MCP server |
+| Codex CLI and ChatGPT desktop app | `codex plugin marketplace add aichatwatch/aicw-skills`, then install `aicw-skills` from the Plugins Directory or with `codex plugin add aicw-skills@aicw-io` | Included MCP server |
 | Claude Desktop | Upload skill folders as ZIP files where your plan supports skills | Add a local MCP server: command `npx`, arguments `-y`, `aicw-ai-mentions@latest`, `mcp` |
 | Claude and ChatGPT on the web | Upload skill folders as ZIP files where your plan supports skills | Remote connector over HTTPS (see below) |
-| Other skill clients | `npx skills add aicw-io/aicw-skills` | Command line: `npx -y aicw-ai-mentions@latest` |
+| Other skill clients | `npx skills add aichatwatch/aicw-skills` | Command line: `npx -y aicw-ai-mentions@latest` |
 
 To make a ZIP file for upload, compress one complete skill folder, for example `skills/aicw-mentions`, with its `references`, `scripts`, and license files.
 
