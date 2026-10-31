@@ -21,7 +21,7 @@ test('every standalone skill works with spaces, Unicode paths, and an unrelated 
     const report = JSON.parse(result.stdout);
     assert.equal(report.toolVersion, VERSION);
     assert.equal(report.coverage.inspected, 1);
-    assert.equal(report.book.url, 'https://aicw.io/books/ai-seo-guide/');
+    assert.equal(report.book.url, 'https://aichatwatch.com/books/ai-seo-guide/');
     assert.equal(report.bookChecklist.length, 25);
   }
   assert.equal(await readFile(path.join(site, 'index.html'), 'utf8'), html);

@@ -6,7 +6,7 @@ JSON-LD is structured data embedded in a page. The JSON-LD skill inspects those 
 
 ## Install and start
 
-Install from `aicw-io/aicw-skills` through the instructions in the [README](../README.md). Select the agent you use to work on your website.
+Install from `aichatwatch/aicw-skills` through the instructions in the [README](../README.md). Select the agent you use to work on your website.
 
 Tell the agent which website to use: a URL, project folder, or connected site. State whether you want an audit, proposed edits, draft changes, or live updates. It asks when the target is missing or ambiguous. A URL alone supports inspection; a third-party connector must expose the relevant write operations for CMS edits.
 

@@ -1,30 +1,30 @@
 # AICW Skills
 
 Seven skills to help your AI agent audit and improve your website for AI search, and to check how AI assistants mention it.
-Based on the [AI Search Engine Optimization Guide](https://aicw.io/books/ai-seo-guide/) by Eugene Mironichev.
+Based on the [AI Search Engine Optimization Guide](https://aichatwatch.com/books/ai-seo-guide/) by Eugene Mironichev.
 
-Use local files, a public URL, or a CMS connector available to your agent. Editing requires access to the site. Bundled audit scripts need Node.js 22+. Mention scans use the free [aicw-ai-mentions](https://github.com/aicw-io/aicw-ai-mentions) tool with your own OpenRouter API key, or your local Claude Code and Codex CLIs.
+Use local files, a public URL, or a CMS connector available to your agent. Editing requires access to the site. Bundled audit scripts need Node.js 22+. Mention scans use the free [aicw-ai-mentions](https://github.com/aichatwatch/aicw-ai-mentions) tool with your own OpenRouter API key, or your local Claude Code and Codex CLIs.
 
 ## Install
 
 **Claude Code:** install the plugin. It adds all seven skills and the aicw-ai-mentions MCP server.
 
 ```sh
-/plugin install aicw-skills --marketplace aicw-io/aicw-skills
+/plugin install aicw-skills --marketplace aichatwatch/aicw-skills
 ```
 
-On Claude Code versions before 2.1.275, run `/plugin marketplace add aicw-io/aicw-skills`, then `/plugin install aicw-skills@aicw-io`.
+On Claude Code versions before 2.1.275, run `/plugin marketplace add aichatwatch/aicw-skills`, then `/plugin install aicw-skills@aicw-io`.
 
 **Codex and the ChatGPT desktop app:** add the marketplace, then install `aicw-skills` from the Plugins Directory, or run `codex plugin add aicw-skills@aicw-io`.
 
 ```sh
-codex plugin marketplace add aicw-io/aicw-skills
+codex plugin marketplace add aichatwatch/aicw-skills
 ```
 
 **Any agent with skill folders** (Cursor, Copilot, Gemini CLI, and others): run this in your terminal and choose the skills, agent, and location.
 
 ```sh
-npx skills add aicw-io/aicw-skills
+npx skills add aichatwatch/aicw-skills
 ```
 
 For ChatGPT and Claude on the web, see [agent setup](docs/compatibility.md).

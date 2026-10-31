@@ -3,8 +3,8 @@
 export const BOOK_SOURCE = Object.freeze({
   title: 'AI Search Engine Optimization Guide',
   author: 'Eugene Mironichev',
-  url: 'https://aicw.io/books/ai-seo-guide/',
-  pdfUrl: 'https://aicw.io/assets/book/ai-seo-guide/AI%20Search%20Engine%20Optimization%20Guide.pdf',
+  url: 'https://aichatwatch.com/books/ai-seo-guide/',
+  pdfUrl: 'https://aichatwatch.com/assets/book/ai-seo-guide/AI%20Search%20Engine%20Optimization%20Guide.pdf',
   edition: 'Full 84-page PDF; change history dated October 18, 2025',
   sha256: '4b7c348c897e62a7e2ca7015c16971cbbb488bdbd25d76ed27880c9659a43e2a',
 });

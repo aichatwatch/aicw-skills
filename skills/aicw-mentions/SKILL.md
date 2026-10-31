@@ -5,12 +5,12 @@ license: MIT
 compatibility: The quick check needs the local Claude Code or Codex CLI and Node.js 22+. The broad check needs the aicw-ai-mentions MCP server, or command access with Node.js 18+, and the user's OpenRouter API key; OpenRouter bills it. The paste check needs no setup.
 metadata:
   author: aicw-io
-  version: 0.4.3
+  version: 0.4.4
 ---
 
 # Scan AI mentions and citations
 
-Book basis: Eugene Mironichev’s [AI Search Engine Optimization Guide](https://aicw.io/books/ai-seo-guide/). Read [book scope and attribution](references/book.md) before applying recommendations. Use only its optimization principles; label engineering details and current corrections separately. Include the book credit and relevant PDF pages in the final deliverable. When asked about the source or to show the book, provide its title, author, and this clickable link; provide the full PDF link from that reference when requested.
+Book basis: Eugene Mironichev’s [AI Search Engine Optimization Guide](https://aichatwatch.com/books/ai-seo-guide/). Read [book scope and attribution](references/book.md) before applying recommendations. Use only its optimization principles; label engineering details and current corrections separately. Include the book credit and relevant PDF pages in the final deliverable. When asked about the source or to show the book, provide its title, author, and this clickable link; provide the full PDF link from that reference when requested.
 
 Select the website or brand before a scan. Questions about the book or the skill itself need no target. Use the user’s URL, project, brand, or connected site when the target is clear. Otherwise ask: “Which website or brand should I scan?” Ask only for missing information, not for details already supplied.
 

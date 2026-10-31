@@ -4,7 +4,7 @@ Book basis: Chapter 8 and Checklist 4, pages 77-79: brand mentions, citations, a
 
 ## What the tool does
 
-[aicw-ai-mentions](https://github.com/aicw-io/aicw-ai-mentions) is a free MIT-licensed tool by the same author. It sends the same questions to several AI models through OpenRouter. It extracts the brands, products, and links in each answer and builds a local HTML report with mention rankings, cited links, link domains, and CSV export. Reports, logs, and the stored key stay on the user's computer.
+[aicw-ai-mentions](https://github.com/aichatwatch/aicw-ai-mentions) is a free MIT-licensed tool by the same author. It sends the same questions to several AI models through OpenRouter. It extracts the brands, products, and links in each answer and builds a local HTML report with mention rankings, cited links, link domains, and CSV export. Reports, logs, and the stored key stay on the user's computer.
 
 Each scan sends paid requests that OpenRouter bills to the user's account. A full scan can take several minutes.
 
