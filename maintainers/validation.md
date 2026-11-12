@@ -87,7 +87,7 @@ The first submission case omitted the full book title and link from its final an
 
 Claude received a static review of frontmatter, installation paths, instructions, command arguments, and permissions against its official documentation. The runner now writes `CLAUDE.md`, keeps skill discovery enabled, and rejects error or incomplete result events. Shell examples use quoted paths and single-line commands. The dry-run test requires no Claude process, login, or account usage.
 
-An earlier Claude Code 2.1.270 attempt stopped at expired OAuth authentication before performing the task. It is recorded as unavailable, not a skill pass or failure. After live testing was deferred, no further Claude CLI process was launched. Live Claude behavior remains unverified. Cursor, Copilot, and Gemini were reviewed through their documented skill locations but were not exercised in live sessions. The [compatibility guide](compatibility.md) links the current official references and records platform limits.
+An earlier Claude Code 2.1.270 attempt stopped at expired OAuth authentication before performing the task. It is recorded as unavailable, not a skill pass or failure. After live testing was deferred, no further Claude CLI process was launched. Live Claude behavior remains unverified. Cursor, Copilot, and Gemini were reviewed through their documented skill locations but were not exercised in live sessions. The [compatibility guide](../docs/compatibility.md) links the current official references and records platform limits.
 
 ## Limits
 
@@ -95,7 +95,7 @@ The audit helper is a scoped linter. It does not fully validate every Schema.org
 
 The agent instructions supply those review steps. Local results do not prove production reachability, indexing, or AI citations. No submission API or public account was changed during testing.
 
-See [agent compatibility](compatibility.md) for installation paths and [the release procedure](releasing.md) for repeatable packaging. Detailed development history and raw runtime artifacts stay outside the public release.
+See [agent compatibility](../docs/compatibility.md) for installation paths and [the release procedure](releasing.md) for repeatable packaging. Detailed development history and raw runtime artifacts stay outside the public release.
 
 ## Public packaging
 

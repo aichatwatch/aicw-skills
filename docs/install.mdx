@@ -1,0 +1,59 @@
+---
+title: Install
+description: Install AICW Skills in Claude Code, Codex, or any agent that reads skill folders.
+---
+
+Choose the way that fits your agent. The plugin installs all seven skills and the aicw-ai-mentions server. The server runs mention scans.
+
+## Claude Code
+
+Add the plugin from the marketplace. This command installs all seven skills.
+
+```sh
+/plugin install aicw-skills --marketplace aichatwatch/aicw-skills
+```
+
+Open a new session after the install.
+
+## Codex and the ChatGPT desktop app
+
+<Steps>
+  <Step title="Add the marketplace">
+    This command adds the AICW marketplace to Codex.
+
+    ```sh
+    codex plugin marketplace add aichatwatch/aicw-skills
+    ```
+  </Step>
+  <Step title="Install the plugin">
+    Install `aicw-skills` from the Plugins Directory.
+  </Step>
+</Steps>
+
+## Any agent with skill folders
+
+Cursor, GitHub Copilot, Gemini CLI, and other agents read skill folders. Run this command in your terminal. It asks which skills, agent, and location to use.
+
+```sh
+npx skills add aichatwatch/aicw-skills
+```
+
+## Release archive
+
+Each release has an archive with the complete skill folders. Copy one complete `skills/aicw-*` folder into the skill folder of your agent. Keep the `scripts`, `references`, and license files with `SKILL.md`.
+
+## Skill folders by agent
+
+| Agent | Project skill folder |
+| --- | --- |
+| Claude Code | `.claude/skills/` |
+| Codex | `.agents/skills/` |
+| Cursor | `.agents/skills/` or `.cursor/skills/` |
+| GitHub Copilot | `.github/skills/` or `.agents/skills/` |
+| Gemini CLI | `.gemini/skills/` or `.agents/skills/` |
+
+If the skill does not appear, restart the session. See [Compatibility](/compatibility) for web clients and more detail.
+
+<Note>
+The audit scripts need Node.js 22 or newer. Mention scans through the aicw-ai-mentions server need Node.js 18 or newer.
+</Note>

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "AICW Skills",
+  "description": "Seven agent skills that audit a website for AI search and check how AI assistants mention it.",
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#667eea"
+  },
+  "navbar": {
+    "links": [
+      { "label": "GitHub", "href": "https://github.com/aichatwatch/aicw-skills" },
+      { "label": "Project page", "href": "https://aichatwatch.com/#aicw-skills" }
+    ],
+    "primary": { "type": "button", "label": "Install", "href": "/install" }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/aichatwatch"
+    },
+    "links": [
+      {
+        "header": "AI Chat Watch",
+        "items": [
+          { "label": "aichatwatch.com", "href": "https://aichatwatch.com" }
+        ]
+      },
+      {
+        "header": "Legal",
+        "items": [
+          { "label": "Privacy", "href": "https://aichatwatch.com/privacy/" }
+        ]
+      }
+    ]
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "mcp"]
+  },
+  "navigation": {
+    "groups": [
+      { "group": "Get started", "pages": ["index", "install", "quickstart", "choose-a-skill"] },
+      {
+        "group": "Skills",
+        "pages": [
+          "skills/aicw-optimize",
+          "skills/aicw-content",
+          "skills/aicw-jsonld",
+          "skills/aicw-audit",
+          "skills/aicw-mentions",
+          "skills/aicw-monitor",
+          "skills/aicw-submit"
+        ]
+      },
+      { "group": "Reference", "pages": ["audit-cli", "mention-scans", "reading-reports", "compatibility", "example-requests"] },
+      { "group": "Help", "pages": ["the-book", "troubleshooting", "contributing"] }
+    ]
+  }
+}
