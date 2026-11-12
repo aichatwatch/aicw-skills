@@ -31,13 +31,19 @@ The audit scripts need no plugin, no MCP server, no API key, and no specific age
 
 The repository is also a plugin for Claude Code, Codex, and the ChatGPT desktop app. The plugin installs all seven skills and the [aicw-ai-mentions](https://github.com/aichatwatch/aicw-ai-mentions) MCP server. The server needs Node.js 18 or newer. The skill asks for your OpenRouter API key before the first scan.
 
-| Client | Install | Mention scans |
+| Client | How to install | Mention scans |
 | --- | --- | --- |
-| Claude Code | `/plugin install aicw-skills --marketplace aichatwatch/aicw-skills` | Included MCP server |
-| Codex CLI and ChatGPT desktop app | `codex plugin marketplace add aichatwatch/aicw-skills`, then install `aicw-skills` from the Plugins Directory | Included MCP server |
-| Claude Desktop | Upload skill folders as ZIP files, where your plan supports skills | Add a local MCP server with the command `npx` and the arguments `-y`, `aicw-ai-mentions@latest`, `mcp` |
+| Claude Code | Install the plugin | Included MCP server |
+| Codex CLI and ChatGPT desktop app | Add the marketplace, then install the plugin | Included MCP server |
+| Claude Desktop | Upload skill folders as ZIP files, where your plan supports skills | Add a local MCP server |
 | Claude and ChatGPT on the web | Upload skill folders as ZIP files, where your plan supports skills | Remote connector over HTTPS |
-| Other skill clients | `npx skills add aichatwatch/aicw-skills` | Command line: `npx -y aicw-ai-mentions@latest` |
+| Other skill clients | Run the skills installer | Run the aicw-ai-mentions command line |
+
+The [Install](/install) page has the commands for the plugin and the skills installer. To add a local MCP server in Claude Desktop, use the command `npx` with the arguments `-y`, `aicw-ai-mentions@latest` and `mcp`. To run the aicw-ai-mentions command line without a plugin, run this command:
+
+```sh
+npx -y aicw-ai-mentions@latest
+```
 
 To make a ZIP file, compress one complete skill folder. Include its `references`, `scripts`, and license files.
 
