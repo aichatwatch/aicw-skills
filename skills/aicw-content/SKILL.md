@@ -4,7 +4,7 @@ description: Audit and improve page text for user intent and AI search understan
 license: MIT
 compatibility: Use available file, web, or CMS connector access for the selected website. Bundled scripts require command access and Node.js 22+. Browser checks need a browser runtime. Connectors are not included.
 metadata:
-  author: aicw-io
+  author: aicw
   version: 0.4.4
 ---
 

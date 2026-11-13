@@ -15,6 +15,18 @@ Add the plugin from the marketplace. This command installs all seven skills.
 
 Open a new session after the install.
 
+If your Claude Code version is older than 2.1.275, add the marketplace first. This command adds it.
+
+```sh
+/plugin marketplace add aichatwatch/aicw-skills
+```
+
+Then run this command to install the plugin.
+
+```sh
+/plugin install aicw-skills@aicw
+```
+
 ## Codex and the ChatGPT desktop app
 
 <Steps>
@@ -26,7 +38,11 @@ Open a new session after the install.
     ```
   </Step>
   <Step title="Install the plugin">
-    Install `aicw-skills` from the Plugins Directory.
+    Install `aicw-skills` from the Plugins Directory. In the Codex CLI, you can run this command instead.
+
+    ```sh
+    codex plugin add aicw-skills@aicw
+    ```
   </Step>
 </Steps>
 
@@ -38,9 +54,9 @@ Cursor, GitHub Copilot, Gemini CLI, and other agents read skill folders. Run thi
 npx skills add aichatwatch/aicw-skills
 ```
 
-## Release archive
+## Copy a skill folder
 
-Each release has an archive with the complete skill folders. Copy one complete `skills/aicw-*` folder into the skill folder of your agent. Keep the `scripts`, `references`, and license files with `SKILL.md`.
+Clone the repository, or download it from GitHub. Copy one complete `skills/aicw-*` folder into the skill folder of your agent. Keep the `scripts`, `references`, and license files with `SKILL.md`.
 
 ## Skill folders by agent
 

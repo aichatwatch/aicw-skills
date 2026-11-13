@@ -27,15 +27,15 @@ test('local nested sitemap routes use preview origin and alternate WP sitemap lo
   const hits = [];
   const url = await server(t, (req, res) => {
     hits.push(req.url);
-    if (req.url === '/robots.txt') { res.end('Sitemap: https://aicw.io/wp-sitemap.xml'); return; }
-    if (req.url === '/wp-sitemap.xml') { res.end('<sitemapindex><sitemap><loc>https://aicw.io/pages.xml</loc></sitemap></sitemapindex>'); return; }
-    if (req.url === '/pages.xml') { res.end('<urlset><url><loc>https://aicw.io/guide/</loc></url></urlset>'); return; }
+    if (req.url === '/robots.txt') { res.end('Sitemap: https://aichatwatch.com/wp-sitemap.xml'); return; }
+    if (req.url === '/wp-sitemap.xml') { res.end('<sitemapindex><sitemap><loc>https://aichatwatch.com/pages.xml</loc></sitemap></sitemapindex>'); return; }
+    if (req.url === '/pages.xml') { res.end('<urlset><url><loc>https://aichatwatch.com/guide/</loc></url></urlset>'); return; }
     if (['/', '/guide/'].includes(req.url)) { res.setHeader('content-type', 'text/html'); res.end(html); return; }
     res.statusCode = 404; res.end('missing');
   });
-  const report = await audit({ url, publicOrigin: 'https://aicw.io' });
+  const report = await audit({ url, publicOrigin: 'https://aichatwatch.com' });
   assert.equal(report.pages.length, 2); assert.ok(hits.includes('/guide/'));
-  assert.equal(report.pages[1].url, 'https://aicw.io/guide/');
+  assert.equal(report.pages[1].url, 'https://aichatwatch.com/guide/');
 });
 test('a page limit samples every sitemap section, not only the first one listed', async t => {
   const blog = Array.from({ length: 30 }, (_, i) => `/blog/post-${i}/`);
@@ -43,11 +43,11 @@ test('a page limit samples every sitemap section, not only the first one listed'
   const hits = [];
   const url = await server(t, (req, res) => {
     hits.push(req.url);
-    if (req.url === '/sitemap.xml') { res.end(`<urlset>${routes.map(r => `<url><loc>https://aicw.io${r}</loc></url>`).join('')}</urlset>`); return; }
+    if (req.url === '/sitemap.xml') { res.end(`<urlset>${routes.map(r => `<url><loc>https://aichatwatch.com${r}</loc></url>`).join('')}</urlset>`); return; }
     if (req.url === '/' || routes.includes(req.url)) { res.setHeader('content-type', 'text/html'); res.end(html); return; }
     res.statusCode = 404; res.end('missing');
   });
-  const report = await audit({ url, publicOrigin: 'https://aicw.io', maxPages: 6 });
+  const report = await audit({ url, publicOrigin: 'https://aichatwatch.com', maxPages: 6 });
   assert.deepEqual(report.pages.map(p => new URL(p.url).pathname), ['/', '/blog/post-0/', '/tools/one/', '/tools/category/vector/', '/tools/tag/a/', '/blog/post-1/']);
   assert.deepEqual(report.coverage.sitemapSections, { '/blog/': 30, '/tools/tag/': 3, '/tools/': 2, '/tools/category/': 1 });
 });

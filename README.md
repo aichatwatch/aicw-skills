@@ -13,9 +13,9 @@ Use local files, a public URL, or a CMS connector available to your agent. Editi
 /plugin install aicw-skills --marketplace aichatwatch/aicw-skills
 ```
 
-On Claude Code versions before 2.1.275, run `/plugin marketplace add aichatwatch/aicw-skills`, then `/plugin install aicw-skills@aicw-io`.
+On Claude Code versions before 2.1.275, run `/plugin marketplace add aichatwatch/aicw-skills`, then `/plugin install aicw-skills@aicw`.
 
-**Codex and the ChatGPT desktop app:** add the marketplace, then install `aicw-skills` from the Plugins Directory, or run `codex plugin add aicw-skills@aicw-io`.
+**Codex and the ChatGPT desktop app:** add the marketplace, then install `aicw-skills` from the Plugins Directory, or run `codex plugin add aicw-skills@aicw`.
 
 ```sh
 codex plugin marketplace add aichatwatch/aicw-skills
