@@ -13,9 +13,9 @@ Use local files, a public URL, or a CMS connector available to your agent. Editi
 /plugin install aicw-skills --marketplace aichatwatch/aicw-skills
 ```
 
-On Claude Code versions before 2.1.275, run `/plugin marketplace add aichatwatch/aicw-skills`, then `/plugin install aicw-skills@aicw-io`.
+On Claude Code versions before 2.1.275, run `/plugin marketplace add aichatwatch/aicw-skills`, then `/plugin install aicw-skills@aicw`.
 
-**Codex and the ChatGPT desktop app:** add the marketplace, then install `aicw-skills` from the Plugins Directory, or run `codex plugin add aicw-skills@aicw-io`.
+**Codex and the ChatGPT desktop app:** add the marketplace, then install `aicw-skills` from the Plugins Directory, or run `codex plugin add aicw-skills@aicw`.
 
 ```sh
 codex plugin marketplace add aichatwatch/aicw-skills
@@ -49,6 +49,6 @@ Give the agent your website URL, project folder, or connected site. It asks when
 
 The skills follow the book's [25 checklist items](resources/book-checklist.md). Each skill and audit report credits the book.
 
-[Usage examples](docs/book-companion.md) · [Agent setup](docs/compatibility.md) · [Mention scans](resources/mentions.md) · [Audit commands](resources/tools.md) · [Development and testing](docs/releasing.md)
+[Usage examples](docs/example-requests.md) · [Agent setup](docs/compatibility.md) · [Mention scans](resources/mentions.md) · [Audit commands](resources/tools.md) · [Development and testing](maintainers/releasing.md)
 
 Code: [MIT](LICENSE). See [attribution](NOTICE.md). The book retains its original copyright.

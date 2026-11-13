@@ -14,13 +14,14 @@ const name = `aicw-skills-${pkg.version}`;
 const candidate = path.join(staging, name);
 const files = ['README.md', 'LICENSE', 'NOTICE.md', 'package.json', 'package-lock.json', '.nvmrc', '.gitignore', '.gitattributes', 'plugin.json', 'mcp.json', '.mcp.json'];
 const dirs = ['skills', 'src', 'resources', 'scripts', 'test', 'evals', 'third-party', '.github', '.claude-plugin', '.agents'];
-const docs = ['book-companion.md', 'compatibility.md', 'validation.md', 'releasing.md'];
+const docs = ['example-requests.md', 'compatibility.md'];
+const maintainerDocs = ['validation.md', 'releasing.md'];
 try {
   execFileSync(process.execPath, ['scripts/check-build.mjs'], { cwd: root, stdio: 'inherit' });
   execFileSync(process.execPath, ['scripts/validate.mjs'], { cwd: root, stdio: 'inherit' });
   await mkdir(candidate);
   for (const dir of dirs) files.push(...(await filesUnder(path.join(root, dir))).map(f => `${dir}/${f}`));
-  files.push(...docs.map(f => `docs/${f}`));
+  files.push(...docs.map(f => `docs/${f}`), ...maintainerDocs.map(f => `maintainers/${f}`));
   for (const file of files.sort()) {
     if (/(^|\/)(node_modules|\.tmp|\.local|reports|release|\.env)(\/|$)|(^|\/)(?:\._|\.DS_Store)|\.(?:pdf|epub|sqlite|sql|log)$/i.test(file)) throw new Error(`Unexpected release file: ${file}`);
     const content = await readFile(path.join(root, file), 'utf8');

@@ -5,9 +5,9 @@ import { checkJsonLD, checkPage, checkRobots, parseSitemap } from '../src/checks
 import { prepareSubmission } from '../src/submission.mjs';
 
 test('submission preparation leaves an unknown sitemap unset and validates a supplied one', () => {
-  const input = { origin: 'https://aicw.io', urls: ['https://aicw.io/guide/'], key: 'existing-key-123' };
+  const input = { origin: 'https://aichatwatch.com', urls: ['https://aichatwatch.com/guide/'], key: 'existing-key-123' };
   assert.equal(prepareSubmission(input).sitemap, null);
-  assert.equal(prepareSubmission({ ...input, sitemap: 'https://aicw.io/wp-sitemap.xml' }).sitemap, 'https://aicw.io/wp-sitemap.xml');
+  assert.equal(prepareSubmission({ ...input, sitemap: 'https://aichatwatch.com/wp-sitemap.xml' }).sitemap, 'https://aichatwatch.com/wp-sitemap.xml');
   assert.throws(() => prepareSubmission({ ...input, sitemap: 'https://elsewhere.tld/sitemap.xml' }), /configured origin/);
   assert.throws(() => prepareSubmission({ ...input, origin: undefined }));
   assert.throws(() => prepareSubmission({ ...input, origin: 'https://example.com' }), /real public hostname/);
@@ -15,11 +15,11 @@ test('submission preparation leaves an unknown sitemap unset and validates a sup
 
 function page(data, body = '<h1>Guide</h1><p>Useful factual text.</p>') {
   const p = inspectHTML(`<html lang="en"><head><title>Guide</title><meta content="Useful guide" name="description"></head><body><main>${body}</main>${data.map(x => `<script type="application/ld+json">${typeof x === 'string' ? x : JSON.stringify(x)}</script>`).join('')}</body></html>`, 'index.html');
-  p.url = 'https://aicw.io/guide/'; return p;
+  p.url = 'https://aichatwatch.com/guide/'; return p;
 }
 test('recognizes graph, nested entities, root arrays, and multi-type nodes', () => {
   const results = checkJsonLD(page([{ '@context': 'https://schema.org', '@graph': [
-    { '@type': ['WebPage', 'FAQPage'], '@id': 'https://aicw.io/guide/#page', mainEntity: { '@type': 'Question', name: 'What?', acceptedAnswer: { '@type': 'Answer', text: 'This.' } } },
+    { '@type': ['WebPage', 'FAQPage'], '@id': 'https://aichatwatch.com/guide/#page', mainEntity: { '@type': 'Question', name: 'What?', acceptedAnswer: { '@type': 'Answer', text: 'This.' } } },
   ] }, [{ '@context': 'https://schema.org', '@type': 'Organization' }]]));
   const inventory = results.find(x => x.rule === 'jsonld.inventory');
   for (const type of ['WebPage', 'FAQPage', 'Question', 'Answer', 'Organization']) assert.ok(inventory.evidence.includes(type));
@@ -32,7 +32,7 @@ test('keeps a malformed block visible even when a second block parses', () => {
 });
 test('catches unresolved page references seen in chapter output, but permits external references', () => {
   const results = checkJsonLD(page([{ '@context': 'https://schema.org', '@graph': [
-    { '@type': 'WebPage', mainEntity: { '@id': '#article' }, publisher: { '@id': 'https://aicw.io/#publisher' }, breadcrumb: { '@id': '#breadcrumb' } },
+    { '@type': 'WebPage', mainEntity: { '@id': '#article' }, publisher: { '@id': 'https://aichatwatch.com/#publisher' }, breadcrumb: { '@id': '#breadcrumb' } },
     { '@type': 'Chapter', name: 'Guide' }, { '@type': 'BreadcrumbList', itemListElement: [] },
   ] }]));
   assert.equal(results.filter(x => x.rule === 'jsonld.reference').length, 2);
@@ -41,7 +41,7 @@ test('cross-block definitions resolve relative ids and legitimate extensions are
   const results = checkJsonLD(page([
     { '@context': 'https://schema.org', '@type': 'WebPage', mainEntity: { '@id': '#book' } },
     { '@context': 'https://schema.org', '@type': 'Book', '@id': '#book', name: 'A book' },
-    { '@context': 'https://schema.org', '@id': '#book', url: 'https://aicw.io/guide/' },
+    { '@context': 'https://schema.org', '@id': '#book', url: 'https://aichatwatch.com/guide/' },
   ]));
   assert.equal(results.filter(x => ['jsonld.reference', 'jsonld.conflict'].includes(x.rule)).length, 0);
 });
@@ -85,7 +85,7 @@ test('headings inside hidden ancestors do not create false hierarchy failures', 
 });
 test('robots handles empty Disallow, groups, specificity, and allow ties', () => {
   const robots = `User-agent: *\nDisallow: /private/\nAllow: /private/public\n\nUser-agent: CCBot\nDisallow:\n\nUser-agent: GPTBot\nUser-agent: ClaudeBot\nDisallow: /\nAllow: /open$\n`;
-  const get = (agent, route) => checkRobots(robots, 'https://aicw.io', ['https://aicw.io' + route]).findings.find(x => x.agent === agent).allowed;
+  const get = (agent, route) => checkRobots(robots, 'https://aichatwatch.com', ['https://aichatwatch.com' + route]).findings.find(x => x.agent === agent).allowed;
   assert.equal(get('CCBot', '/private/'), true);
   assert.equal(get('Googlebot', '/private/a'), false);
   assert.equal(get('Googlebot', '/private/public'), true);
@@ -94,18 +94,18 @@ test('robots handles empty Disallow, groups, specificity, and allow ties', () =>
   assert.equal(get('ClaudeBot', '/other'), false);
 });
 test('sitemap indexes and namespaces parse, malformed XML and relative loc do not', () => {
-  const parsed = parseSitemap('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://aicw.io/posts.xml</loc></sitemap></sitemapindex>');
-  assert.equal(parsed.index, true); assert.equal(parsed.entries[0].url, 'https://aicw.io/posts.xml');
+  const parsed = parseSitemap('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://aichatwatch.com/posts.xml</loc></sitemap></sitemapindex>');
+  assert.equal(parsed.index, true); assert.equal(parsed.entries[0].url, 'https://aichatwatch.com/posts.xml');
   assert.throws(() => parseSitemap('<urlset><url></urlset>'));
   assert.throws(() => parseSitemap('<urlset><url><loc>/relative</loc></url></urlset>'));
   assert.throws(() => parseSitemap('<!DOCTYPE urlset><urlset/>'));
 });
 test('submission is preparation only and validates host, key, and URL count', () => {
-  const plan = prepareSubmission({ origin: 'https://aicw.io', urls: ['https://aicw.io/a/', 'https://aicw.io/a/'], key: 'existing-key-123' });
+  const plan = prepareSubmission({ origin: 'https://aichatwatch.com', urls: ['https://aichatwatch.com/a/', 'https://aichatwatch.com/a/'], key: 'existing-key-123' });
   assert.equal(plan.status, 'prepared-not-submitted');
   assert.equal(plan.indexnow.payload.urlList.length, 1);
   assert.equal(plan.keyFile.content, 'existing-key-123');
   assert.throws(() => prepareSubmission({ origin: 'http://localhost:4321', urls: [] }));
-  assert.throws(() => prepareSubmission({ origin: 'https://aicw.io', urls: ['https://elsewhere.tld/a/'] }));
-  assert.throws(() => prepareSubmission({ origin: 'https://aicw.io', urls: ['https://aicw.io/a/'], key: '../bad' }));
+  assert.throws(() => prepareSubmission({ origin: 'https://aichatwatch.com', urls: ['https://elsewhere.tld/a/'] }));
+  assert.throws(() => prepareSubmission({ origin: 'https://aichatwatch.com', urls: ['https://aichatwatch.com/a/'], key: '../bad' }));
 });
