@@ -4,7 +4,7 @@ description: Scan how AI assistants mention and cite a brand, product, or websit
 license: MIT
 compatibility: The quick check needs the local Claude Code or Codex CLI and Node.js 22+. The broad check needs the aicw-ai-mentions MCP server, or command access with Node.js 18+, and the user's OpenRouter API key; OpenRouter bills it. The paste check needs no setup.
 metadata:
-  author: aicw
+  author: aichatwatch (aicw)
   version: 0.4.4
 ---
 
