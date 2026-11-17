@@ -4,7 +4,7 @@ description: Inspect, validate, and repair application/ld+json blocks in website
 license: MIT
 compatibility: Use available file, web, or CMS connector access for the selected website. Bundled scripts require command access and Node.js 22+. Browser checks need a browser runtime. Connectors are not included.
 metadata:
-  author: aicw
+  author: aichatwatch (aicw)
   version: 0.4.4
 ---
 
